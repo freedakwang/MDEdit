@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MDEdit — 在线 Markdown 编辑器</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --bg-dark: #050a18;
+    --bg-card: rgba(15,23,42,0.7);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border: rgba(51,65,85,0.6);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ========== 浮动光球背景 ========== */
+.orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+}
+.orb-1 { width: 500px; height: 500px; background: #3b82f6; top: -10%; left: -5%; animation: orbFloat1 25s ease-in-out infinite; }
+.orb-2 { width: 400px; height: 400px; background: #a855f7; bottom: 5%; right: -8%; animation: orbFloat2 30s ease-in-out infinite; }
+.orb-3 { width: 300px; height: 300px; background: #06b6d4; top: 50%; left: 50%; animation: orbFloat3 22s ease-in-out infinite; }
+
+@keyframes orbFloat1 { 0%,100%{ transform:translate(0,0); } 50%{ transform:translate(40px,60px); } }
+@keyframes orbFloat2 { 0%,100%{ transform:translate(0,0); } 50%{ transform:translate(-50px,-40px); } }
+@keyframes orbFloat3 { 0%,100%{ transform:translate(-50%,-50%); } 50%{ transform:translate(-40%,-45%); } }
+
+/* ========== 通用容器 ========== */
+.page-wrap { position: relative; z-index: 1; }
+
+/* ========== Hero Section ========== */
+.hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 24px 40px;
+    position: relative;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(59,130,246,0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(59,130,246,0.2);
+    color: #93c5fd;
+    padding: 8px 20px;
+    border-radius: 24px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    margin-bottom: 28px;
+    animation: fadeInUp 0.8s ease both;
+}
+
+.hero h1 {
+    font-size: clamp(38px, 6vw, 68px);
+    font-weight: 800;
+    line-height: 1.08;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+    animation: fadeInUp 0.8s ease 0.12s both;
+}
+
+.hero h1 .gradient {
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 40%, #f472b6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-desc {
+    font-size: clamp(16px, 2.2vw, 19px);
+    color: var(--text-secondary);
+    max-width: 560px;
+    margin-bottom: 36px;
+    line-height: 1.8;
+    animation: fadeInUp 0.8s ease 0.24s both;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeInUp 0.8s ease 0.36s both;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    padding: 14px 30px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(59,130,246,0.25);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(59,130,246,0.4); }
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(8px);
+    color: var(--text-primary);
+    padding: 14px 30px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s;
+    border: 1px solid var(--border);
+    cursor: pointer;
+}
+.btn-secondary:hover { border-color: rgba(59,130,246,0.5); color: #93c5fd; transform: translateY(-2px); background: rgba(59,130,246,0.06); }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== Demo Editor ========== */
+.demo-container {
+    max-width: 880px;
+    width: 92%;
+    margin: 48px auto 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 30px 100px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(15,23,42,0.6);
+    backdrop-filter: blur(20px);
+    animation: fadeInUp 0.9s ease 0.5s both;
+}
+
+.demo-toolbar {
+    background: rgba(15,23,42,0.8);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.demo-dots { display: flex; gap: 7px; }
+.demo-dot { width: 11px; height: 11px; border-radius: 50%; }
+.demo-dot.r { background: #ff5f57; }
+.demo-dot.y { background: #febc2e; }
+.demo-dot.g { background: #28c840; }
+
+.demo-tabs {
+    display: flex;
+    margin-left: 16px;
+    gap: 2px;
+}
+
+.demo-tab {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 5px 14px;
+    border-radius: 6px 6px 0 0;
+    background: transparent;
+}
+
+.demo-tab.active {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-primary);
+}
+
+.demo-body {
+    display: flex;
+    min-height: 320px;
+}
+
+.demo-panel-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(148,163,184,0.5);
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+
+.demo-editor, .demo-preview {
+    flex: 1;
+    padding: 18px 20px;
+    font-size: 13px;
+    line-height: 1.9;
+}
+
+.demo-editor {
+    background: rgba(5,10,24,0.5);
+    color: #94a3b8;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+    overflow: hidden;
+}
+
+.demo-preview {
+    background: rgba(15,23,42,0.4);
+    color: #e2e8f0;
+    overflow: hidden;
+}
+
+.demo-preview h1 { font-size: 22px; margin-bottom: 10px; color: #f1f5f9; font-weight: 700; }
+.demo-preview h2 { font-size: 17px; margin-bottom: 8px; color: #e2e8f0; font-weight: 600; }
+.demo-preview p { margin-bottom: 10px; color: #cbd5e1; font-size: 13px; }
+.demo-preview code { background: rgba(59,130,246,0.12); color: #93c5fd; padding: 2px 7px; border-radius: 4px; font-size: 12px; font-family: 'SF Mono', Consolas, monospace; }
+.demo-preview ul { padding-left: 20px; margin-bottom: 10px; }
+.demo-preview li { margin-bottom: 4px; color: #cbd5e1; font-size: 13px; }
+.demo-preview li::marker { color: #60a5fa; }
+.demo-preview strong { color: #f1f5f9; }
+
+.demo-statusbar {
+    background: rgba(15,23,42,0.8);
+    padding: 6px 18px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: rgba(148,163,184,0.5);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    letter-spacing: 0.3px;
+}
+
+.typing-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 16px;
+    background: #60a5fa;
+    margin-left: 2px;
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+    border-radius: 1px;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* ========== 字幕 ========== */
+.subtitle-bar {
+    text-align: center;
+    margin-top: 24px;
+    animation: fadeInUp 0.8s ease 0.65s both;
+}
+
+.subtitle-text {
+    display: inline-block;
+    background: rgba(15,23,42,0.6);
+    backdrop-filter: blur(16px);
+    color: #cbd5e1;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    line-height: 1.6;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: opacity 0.5s, transform 0.5s;
+    min-height: 44px;
+    letter-spacing: 0.3px;
+}
+
+.subtitle-text.fade-out {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+/* ========== Section 通用 ========== */
+.section-title {
+    text-align: center;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    margin-bottom: 14px;
+    letter-spacing: -0.5px;
+}
+
+.section-desc {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin-bottom: 64px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+}
+
+/* ========== Features Section ========== */
+.features {
+    padding: 120px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.feature-card {
+    position: relative;
+    background: rgba(15,23,42,0.5);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 32px 28px;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.feature-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(168,85,247,0.2), transparent 60%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.35s;
+}
+
+.feature-card:hover::before { opacity: 1; }
+
+.feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px -15px rgba(0,0,0,0.5), 0 0 30px -10px rgba(59,130,246,0.15);
+    border-color: transparent;
+}
+
+.feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    font-size: 22px;
+    position: relative;
+}
+
+.feature-icon.blue { background: rgba(59,130,246,0.12); box-shadow: 0 0 20px rgba(59,130,246,0.1); }
+.feature-icon.purple { background: rgba(168,85,247,0.12); box-shadow: 0 0 20px rgba(168,85,247,0.1); }
+.feature-icon.green { background: rgba(34,197,94,0.12); box-shadow: 0 0 20px rgba(34,197,94,0.1); }
+.feature-icon.orange { background: rgba(249,115,22,0.12); box-shadow: 0 0 20px rgba(249,115,22,0.1); }
+.feature-icon.pink { background: rgba(236,72,153,0.12); box-shadow: 0 0 20px rgba(236,72,153,0.1); }
+.feature-icon.cyan { background: rgba(6,182,212,0.12); box-shadow: 0 0 20px rgba(6,182,212,0.1); }
+
+.feature-card h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.75;
+}
+
+/* ========== Workflow Section ========== */
+.workflow {
+    padding: 100px 24px 120px;
+    text-align: center;
+}
+
+.workflow-steps {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.workflow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    flex: 1;
+    min-width: 160px;
+}
+
+.workflow-step.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.step-number {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(59,130,246,0.08);
+    border: 2px solid rgba(59,130,246,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: #60a5fa;
+    transition: all 0.3s;
+}
+
+.workflow-step:hover .step-number {
+    background: rgba(59,130,246,0.15);
+    border-color: var(--accent);
+    box-shadow: 0 0 30px rgba(59,130,246,0.2);
+    transform: scale(1.08);
+}
+
+.step-text {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+}
+
+.step-desc {
+    color: var(--text-secondary);
+    font-size: 13px;
+    max-width: 180px;
+    line-height: 1.6;
+}
+
+.workflow-arrow {
+    color: rgba(59,130,246,0.3);
+    font-size: 24px;
+    align-self: center;
+    margin-top: 8px;
+    letter-spacing: 2px;
+}
+
+/* ========== CTA Section ========== */
+.cta {
+    padding: 80px 24px 100px;
+    text-align: center;
+}
+
+.cta-box {
+    max-width: 620px;
+    margin: 0 auto;
+    position: relative;
+    background: rgba(15,23,42,0.5);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 24px;
+    padding: 56px 40px;
+}
+
+.cta-box::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 24px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.4), rgba(168,85,247,0.3), rgba(236,72,153,0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+.cta-box h2 {
+    font-size: 30px;
+    margin-bottom: 14px;
+    letter-spacing: -0.5px;
+}
+
+.cta-box p {
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+/* ========== Footer ========== */
+.footer {
+    text-align: center;
+    padding: 48px 24px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    color: rgba(148,163,184,0.6);
+    font-size: 13px;
+    letter-spacing: 0.3px;
+}
+
+.footer a { color: #60a5fa; text-decoration: none; transition: color 0.2s; }
+.footer a:hover { color: #93c5fd; }
+
+/* ========== Responsive ========== */
+
+/* 平板竖屏 */
+@media (max-width: 768px) {
+    .features-grid { grid-template-columns: 1fr; }
+    .workflow-arrow { display: none; }
+    .workflow-steps { flex-direction: column; gap: 28px; }
+    .workflow-step { min-width: auto; }
+}
+
+/* 手机竖屏 */
+@media (max-width: 640px) {
+    /* 光球缩小 */
+    .orb-1 { width: 280px; height: 280px; opacity: 0.25; }
+    .orb-2 { width: 220px; height: 220px; opacity: 0.2; }
+    .orb-3 { width: 180px; height: 180px; opacity: 0.15; }
+
+    /* Hero */
+    .hero { padding: 48px 16px 32px; min-height: auto; }
+    .hero-badge { font-size: 11px; padding: 6px 14px; margin-bottom: 20px; }
+    .hero h1 { font-size: 32px; letter-spacing: -0.5px; margin-bottom: 14px; }
+    .hero-desc { font-size: 15px; line-height: 1.7; margin-bottom: 28px; }
+    .hero-actions { gap: 10px; }
+    .btn-primary, .btn-secondary { padding: 12px 22px; font-size: 14px; border-radius: 10px; }
+
+    /* Demo 编辑器 */
+    .demo-container { width: 96%; margin-top: 32px; border-radius: 12px; }
+    .demo-toolbar { padding: 10px 14px; }
+    .demo-dots { gap: 6px; }
+    .demo-dot { width: 9px; height: 9px; }
+    .demo-tabs { margin-left: 10px; }
+    .demo-tab { font-size: 11px; padding: 4px 10px; }
+    .demo-body { flex-direction: column; min-height: 240px; }
+    .demo-editor { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 130px; padding: 14px 16px; font-size: 12px; }
+    .demo-preview { min-height: 110px; padding: 14px 16px; }
+    .demo-panel-label { font-size: 9px; margin-bottom: 10px; }
+    .demo-preview h1 { font-size: 18px; }
+    .demo-preview h2 { font-size: 15px; }
+    .demo-preview p, .demo-preview li { font-size: 12px; }
+    .demo-statusbar { padding: 5px 14px; font-size: 10px; }
+
+    /* 字幕 */
+    .subtitle-bar { margin-top: 16px; }
+    .subtitle-text { font-size: 13px; padding: 10px 18px; border-radius: 8px; }
+
+    /* 功能区 */
+    .features { padding: 64px 16px; }
+    .section-title { font-size: 26px; }
+    .section-desc { font-size: 14px; margin-bottom: 40px; }
+    .features-grid { grid-template-columns: 1fr; gap: 12px; }
+    .feature-card { padding: 24px 20px; border-radius: 12px; }
+    .feature-icon { width: 42px; height: 42px; border-radius: 10px; font-size: 20px; margin-bottom: 14px; }
+    .feature-card h3 { font-size: 16px; }
+    .feature-card p { font-size: 13px; }
+
+    /* 工作流 */
+    .workflow { padding: 64px 16px 80px; }
+    .workflow-steps { flex-direction: column; gap: 24px; }
+    .workflow-arrow { display: none; }
+    .step-number { width: 52px; height: 52px; font-size: 20px; }
+    .step-text { font-size: 15px; }
+    .step-desc { font-size: 12px; }
+
+    /* CTA */
+    .cta { padding: 48px 16px 64px; }
+    .cta-box { padding: 36px 20px; border-radius: 16px; }
+    .cta-box::before { border-radius: 16px; }
+    .cta-box h2 { font-size: 24px; }
+    .cta-box p { font-size: 14px; margin-bottom: 24px; }
+
+    /* Footer */
+    .footer { padding: 32px 16px; font-size: 12px; }
+}
+
+/* 超小屏幕 (iPhone SE 等) */
+@media (max-width: 375px) {
+    .hero h1 { font-size: 28px; }
+    .hero-desc { font-size: 14px; }
+    .btn-primary, .btn-secondary { padding: 11px 18px; font-size: 13px; }
+    .demo-container { width: 98%; }
+    .feature-card { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 浮动光球背景 -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="page-wrap">
+
+<!-- Hero -->
+<section class="hero">
+    <div class="hero-badge">&#x2728; 开源免费 · 浏览器即用 · 单文件部署</div>
+    <h1>写 Markdown<br>用 <span class="gradient">MDEdit</span></h1>
+    <p class="hero-desc">一款基于浏览器的 Markdown 编辑器，内置 AI 助手、实时预览、多格式导入导出、一键复制富文本到公众号。无需安装，打开即用。</p>
+    <div class="hero-actions">
+        <a class="btn-primary" href="MDEdit.html">&#x1F680; 立即使用</a>
+        <a class="btn-secondary" href="https://github.com/freedakwang/MDEdit" target="_blank">&#x2B50; GitHub</a>
+    </div>
+
+    <!-- Animated Demo -->
+    <div class="demo-container">
+        <div class="demo-toolbar">
+            <div class="demo-dots">
+                <span class="demo-dot r"></span>
+                <span class="demo-dot y"></span>
+                <span class="demo-dot g"></span>
+            </div>
+            <div class="demo-tabs">
+                <span class="demo-tab active">demo.md</span>
+                <span class="demo-tab">README.md</span>
+            </div>
+        </div>
+        <div class="demo-body">
+            <div class="demo-editor">
+                <div class="demo-panel-label">Markdown</div>
+                <div id="demoEditor"></div>
+            </div>
+            <div class="demo-preview">
+                <div class="demo-panel-label">Preview</div>
+                <div id="demoPreview"></div>
+            </div>
+        </div>
+        <div class="demo-statusbar">
+            <span id="demoStatus">Markdown · UTF-8</span>
+            <span id="demoCursor">Ln 1, Col 1</span>
+        </div>
+    </div>
+    <div class="subtitle-bar">
+        <div class="subtitle-text" id="subtitleText"></div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="features">
+    <h2 class="section-title">强大功能</h2>
+    <p class="section-desc">一个 HTML 文件，满足 Markdown 写作的全部需求</p>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon purple">&#x1F916;</div>
+            <h3>AI 助手</h3>
+            <p>内置 AI 助手，支持智能创建文档、续写内容、润色优化、翻译、生成摘要和大纲。兼容 OpenAI、DeepSeek、Claude 等主流模型 API。</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon blue">&#x270D;&#xFE0F;</div>
+            <h3>实时预览</h3>
+            <p>左右双栏布局，编辑 Markdown 的同时实时查看渲染效果，面板宽度可自由拖拽调整。</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon purple">&#x1F4CB;</div>
+            <h3>公众号友好</h3>
+            <p>一键复制富文本，所有样式内联，直接粘贴到微信公众号、WPS、Word 中，格式完美保留。</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon green">&#x1F4E5;</div>
+            <h3>多格式导入</h3>
+            <p>支持从 PDF、Word、Excel、PPT 导入，自动转换为 Markdown 格式，拖放即可。</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon orange">&#x1F4E4;</div>
+            <h3>多格式导出</h3>
+            <p>导出为 HTML、DOCX、PDF，或直接复制富文本，WPS / Office 完美支持。</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon pink">&#x1F319;</div>
+            <h3>暗色模式</h3>
+            <p>一键切换暗色/亮色主题，代码高亮自动跟随，偏好自动记住。</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon cyan">&#x1F4BE;</div>
+            <h3>自动保存</h3>
+            <p>每 5 秒自动保存草稿，下次打开自动恢复，再也不怕意外丢失内容。</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon blue">&#x1F50D;</div>
+            <h3>全文搜索</h3>
+            <p>所有打开过的文件自动存入文档库，支持全文搜索、快速打开和删除管理。</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon purple">&#x1F4D1;</div>
+            <h3>大纲导航</h3>
+            <p>自动提取文档标题生成大纲目录，点击即可跳转定位，大文档轻松浏览。</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon green">&#x26A1;</div>
+            <h3>轻量便携</h3>
+            <p>整个编辑器就是一个 HTML 文件，无需安装任何软件，浏览器打开即用。</p>
+        </div>
+    </div>
+</section>
+
+<!-- Workflow -->
+<section class="workflow">
+    <h2 class="section-title">三步开始</h2>
+    <p class="section-desc">从打开到发布，快到不可思议</p>
+    <div class="workflow-steps">
+        <div class="workflow-step">
+            <div class="step-number">1</div>
+            <div class="step-text">打开文件</div>
+            <div class="step-desc">浏览器打开 MDEdit.html 即可开始写作</div>
+        </div>
+        <div class="workflow-arrow">&#x2192;</div>
+        <div class="workflow-step">
+            <div class="step-number">2</div>
+            <div class="step-text">编辑预览</div>
+            <div class="step-desc">左侧写 Markdown，右侧实时预览效果</div>
+        </div>
+        <div class="workflow-arrow">&#x2192;</div>
+        <div class="workflow-step">
+            <div class="step-number">3</div>
+            <div class="step-text">导出分享</div>
+            <div class="step-desc">一键复制富文本，直接粘贴到公众号</div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+    <div class="cta-box">
+        <h2>开始使用 MDEdit</h2>
+        <p>无需注册，无需安装，打开浏览器就是你的 Markdown 编辑器</p>
+        <a class="btn-primary" href="MDEdit.html">&#x1F680; 立即体验</a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <p>MDEdit &mdash; 简洁高效的 Markdown 编辑器 &middot; <a href="https://github.com/freedakwang/MDEdit">GitHub</a></p>
+</footer>
+
+</div><!-- /page-wrap -->
+
+<script>
+// ========== 打字动画 ==========
+var demoLines = [
+    { md: '# MDEdit 编辑器', html: '<h1>MDEdit 编辑器</h1>', sub: '所思即所见 —— 左边书写，右边即刻呈现' },
+    { md: '', html: '', sub: '' },
+    { md: '一款 **强大** 的 Markdown 工具：', html: '<p>一款 <strong>强大</strong> 的 Markdown 工具：</p>', sub: '让创作者专注内容，格式交给工具' },
+    { md: '', html: '', sub: '' },
+    { md: '- 实时预览', html: '<ul><li>实时预览</li>', sub: '写作与排版，一步到位' },
+    { md: '- 多格式导入导出', html: '<li>多格式导入导出</li>', sub: '打通 PDF、Word、Excel、PPT，让文档自由流转' },
+    { md: '- 一键复制到 `公众号`', html: '<li>一键复制到 <code>公众号</code></li>', sub: '从编辑器到公众号，一键粘贴，格式完美' },
+    { md: '- 内置 AI 助手', html: '<li>内置 AI 助手</li></ul>', sub: 'AI 驱动创作 —— 创建、续写、润色、翻译，一键搞定' },
+    { md: '', html: '', sub: '' },
+    { md: '## 开箱即用', html: '<h2>开箱即用</h2>', sub: '不必安装，不必注册，打开即是你的创作空间' },
+    { md: '', html: '', sub: '' },
+    { md: '打开浏览器，开始写作。', html: '<p>打开浏览器，开始写作。</p>', sub: '一个文件，承载你所有的写作需求' }
+];
+
+var editorEl = document.getElementById('demoEditor');
+var previewEl = document.getElementById('demoPreview');
+var subtitleEl = document.getElementById('subtitleText');
+var demoCursorEl = document.getElementById('demoCursor');
+var demoStatusEl = document.getElementById('demoStatus');
+var currentLine = 0;
+var currentChar = 0;
+var editorContent = '';
+var previewContent = '';
+var lastSub = '';
+var totalLines = 1;
+var totalChars = 0;
+
+function setSubtitle(text) {
+    if (!text || text === lastSub) return;
+    lastSub = text;
+    subtitleEl.classList.add('fade-out');
+    setTimeout(function() {
+        subtitleEl.textContent = text;
+        subtitleEl.classList.remove('fade-out');
+    }, 300);
+}
+
+function typeNextChar() {
+    if (currentLine >= demoLines.length) {
+        editorEl.innerHTML = editorContent + '<span class="typing-cursor"></span>';
+        setSubtitle('MDEdit —— 简洁高效的 Markdown 编辑器');
+        setTimeout(function() {
+            currentLine = 0;
+            currentChar = 0;
+            editorContent = '';
+            previewContent = '';
+            lastSub = '';
+            totalLines = 1;
+            totalChars = 0;
+            subtitleEl.textContent = '';
+            demoStatusEl.textContent = 'Markdown \u00b7 UTF-8';
+            demoCursorEl.textContent = 'Ln 1, Col 1';
+            typeNextChar();
+        }, 5000);
+        return;
+    }
+
+    var line = demoLines[currentLine];
+
+    if (currentChar === 0 && line.sub) {
+        setSubtitle(line.sub);
+    }
+
+    if (currentChar <= line.md.length) {
+        var partial = editorContent + line.md.substring(0, currentChar);
+        editorEl.innerHTML = partial.replace(/\n/g, '<br>') + '<span class="typing-cursor"></span>';
+        demoCursorEl.textContent = 'Ln ' + totalLines + ', Col ' + (currentChar + 1);
+        currentChar++;
+        setTimeout(typeNextChar, 60 + Math.random() * 50);
+    } else {
+        editorContent += line.md + '\n';
+        previewContent += line.html;
+        previewEl.innerHTML = previewContent;
+        totalLines++;
+        totalChars += line.md.length;
+        demoStatusEl.textContent = 'Markdown · UTF-8 · ' + totalChars + ' 字符';
+        currentLine++;
+        currentChar = 0;
+        setTimeout(typeNextChar, 500);
+    }
+}
+
+setTimeout(typeNextChar, 1500);
+
+// ========== 滚动动画 ==========
+function observeElements() {
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.feature-card, .workflow-step').forEach(function(el) {
+        observer.observe(el);
+    });
+}
+
+observeElements();
+</script>
+
+</body>
+</html>

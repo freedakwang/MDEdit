@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# AI IDE 配置文件
+.ai-switch/
+.cursorrules
+.windsurfrules
+.windsurf/
