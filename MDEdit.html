@@ -40,6 +40,8 @@
         :root.dark #preview code { background: #313244; color: #f38ba8; }
         :root.dark #preview pre { background: #11111b; }
         :root.dark #preview pre code { background: transparent; color: #cdd6f4; }
+        :root.dark #preview .svg-render-container { background: #181825; border-color: #313244; }
+        :root.dark #preview .svg-code-block summary { color: #a6adc8; }
         :root.dark #preview blockquote { background: #1e1e2e; border-left-color: var(--accent); color: #a6adc8; }
         :root.dark #preview th { background: #181825; }
         :root.dark #preview tr:nth-child(even) { background: #1e1e2e; }
@@ -364,6 +366,8 @@
         #preview tr:nth-child(even) { background: #fafbfc; }
 
         #preview img { max-width: 100%; border-radius: var(--radius); margin: 8px 0; }
+        #preview .svg-render-container svg { max-width: 100%; height: auto; }
+        #preview .svg-code-block { margin-bottom: 16px; }
 
         #preview hr { border: none; border-top: 2px solid var(--border-color); margin: 24px 0; }
 
@@ -1661,7 +1665,7 @@
 
 <!-- 拖放提示 -->
 <div class="drop-overlay" id="dropOverlay">
-    <span>释放文件以打开（支持 MD/PDF/Word/Excel）</span>
+    <span>释放文件以打开（支持 MD/PDF/Word/Excel/图片）</span>
 </div>
 
 <!-- 通知 -->
@@ -1679,8 +1683,29 @@
 <script>
 // ========== 初始化 Marked ==========
 if (typeof marked !== 'undefined') {
+    // 自定义渲染器：svg 代码块直接渲染为 SVG 图形
+    var customRenderer = new marked.Renderer();
+    var _origCodeRenderer = customRenderer.code.bind(customRenderer);
+    customRenderer.code = function(token) {
+        // marked v12 传入 token 对象 {text, lang, escaped}
+        var code = typeof token === 'object' ? (token.text || '') : token;
+        var lang = typeof token === 'object' ? (token.lang || '') : arguments[1];
+        if (lang && lang.toLowerCase() === 'svg') {
+            // 直接渲染 SVG 图形，不折叠
+            return '<div class="svg-code-block">'
+                + '<div class="svg-render-container" style="text-align:center;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:16px;">'
+                + code
+                + '</div></div>';
+        }
+        // 其他语言走默认渲染
+        if (typeof token === 'object') return _origCodeRenderer(token);
+        return _origCodeRenderer.apply(this, arguments);
+    };
     marked.setOptions({
+        renderer: customRenderer,
         highlight: function(code, lang) {
+            // SVG 代码块保持原始内容，不做高亮转义，供自定义渲染器直接渲染
+            if (lang && lang.toLowerCase() === 'svg') return code;
             if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
                 return hljs.highlight(code, { language: lang }).value;
             }
@@ -1696,8 +1721,8 @@ if (typeof marked !== 'undefined') {
 function sanitizeHTML(html) {
     if (typeof DOMPurify === 'undefined') return html;
     return DOMPurify.sanitize(html, {
-        ADD_TAGS: ['svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse', 'g', 'text', 'tspan', 'defs', 'clipPath', 'use', 'symbol', 'marker', 'pattern', 'linearGradient', 'radialGradient', 'stop', 'foreignObject', 'details', 'summary'],
-        ADD_ATTR: ['viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-opacity', 'fill-opacity', 'opacity', 'transform', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'd', 'points', 'font-size', 'font-family', 'font-weight', 'text-anchor', 'dominant-baseline', 'alignment-baseline', 'dx', 'dy', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'patternUnits', 'clip-path', 'marker-end', 'marker-start', 'marker-mid', 'open']
+        ADD_TAGS: ['svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse', 'g', 'text', 'tspan', 'defs', 'clipPath', 'use', 'symbol', 'marker', 'pattern', 'linearGradient', 'radialGradient', 'stop', 'foreignObject', 'details', 'summary', 'filter', 'feDropShadow', 'feGaussianBlur', 'feOffset', 'feMerge', 'feMergeNode', 'feBlend', 'feColorMatrix', 'feComposite', 'feFlood', 'feMorphology', 'feDisplacementMap', 'feTurbulence', 'feImage', 'feSpecularLighting', 'feDiffuseLighting', 'fePointLight', 'feSpotLight', 'feDistantLight', 'animate', 'animateTransform', 'set', 'image', 'title', 'desc', 'metadata', 'switch'],
+        ADD_ATTR: ['viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-opacity', 'fill-opacity', 'opacity', 'transform', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'd', 'points', 'font-size', 'font-family', 'font-weight', 'text-anchor', 'dominant-baseline', 'alignment-baseline', 'dx', 'dy', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'patternUnits', 'clip-path', 'marker-end', 'marker-start', 'marker-mid', 'open', 'filter', 'flood-color', 'flood-opacity', 'stdDeviation', 'markerWidth', 'markerHeight', 'refX', 'refY', 'orient', 'result', 'in', 'in2', 'mode', 'type', 'values', 'color-interpolation-filters', 'primitiveUnits', 'filterUnits', 'style', 'preserveAspectRatio', 'href', 'xlink:href', 'text-decoration', 'letter-spacing', 'word-spacing', 'writing-mode', 'fill-rule', 'clip-rule', 'display', 'visibility', 'overflow', 'color']
     });
 }
 
@@ -1927,10 +1952,37 @@ function localDeleteDoc(name) {
 // 后处理将占位符还原为 <strong> 标签。
 const STRONG_OPEN = '\u200BSTRONG_S\u200B';
 const STRONG_CLOSE = '\u200BSTRONG_E\u200B';
+// SVG 渲染保护：marked.js 将 <svg> 视为 type7 HTML 块，
+// 遇到空行就会截断，导致 SVG 被拆散。
+// 预处理提取完整 SVG 块为占位符，后处理再还原。
+let _svgRenderCache = [];
 function preprocessMarkdown(md) {
+    _svgRenderCache = [];
+    // 第一步：保护代码围栏内的内容不被 SVG 正则误匹配
+    var _fenceCache = [];
+    md = md.replace(/^(`{3,})[^\n]*\n[\s\S]*?\n\1\s*$/gm, function(match) {
+        var fIdx = _fenceCache.length;
+        _fenceCache.push(match);
+        return '<!--FENCE_PH_' + fIdx + '-->';
+    });
+    // 第二步：保护裸 SVG 块（非代码块内），避免 marked 在空行处截断
+    md = md.replace(/<svg[\s\S]*?<\/svg>/gi, function(match) {
+        var idx = _svgRenderCache.length;
+        _svgRenderCache.push(match);
+        return '<div data-svg-render-ph="' + idx + '"></div>';
+    });
+    // 第三步：还原代码围栏
+    md = md.replace(/<!--FENCE_PH_(\d+)-->/g, function(m, fIdx) {
+        return _fenceCache[parseInt(fIdx)] || m;
+    });
     return md.replace(/\*\*((?:[^*]|\*(?!\*))+?)\*\*/g, STRONG_OPEN + '$1' + STRONG_CLOSE);
 }
 function postprocessHTML(html) {
+    // 还原 SVG 块
+    html = html.replace(/<div data-svg-render-ph="(\d+)"><\/div>/g, function(m, idx) {
+        return _svgRenderCache[parseInt(idx)] || m;
+    });
+    _svgRenderCache = [];
     return html.split(STRONG_OPEN).join('<strong>').split(STRONG_CLOSE).join('</strong>');
 }
 
@@ -1975,6 +2027,75 @@ function debouncePreview() {
 editor.addEventListener('input', function() {
     debouncePreview();
     updateExportState();
+});
+
+// ========== 粘贴处理：SVG 自动包裹 + 图片粘贴插入 ==========
+let _pastedImageCounter = 0; // 粘贴图片计数器
+
+/**
+ * 在编辑器光标位置插入文本
+ * @param {string} textToInsert - 要插入的文本
+ */
+function insertTextAtCursor(textToInsert) {
+    var start = editor.selectionStart;
+    var end = editor.selectionEnd;
+    var value = editor.value;
+    editor.value = value.substring(0, start) + textToInsert + value.substring(end);
+    editor.selectionStart = editor.selectionEnd = start + textToInsert.length;
+    debouncePreview();
+    updateExportState();
+}
+
+editor.addEventListener('paste', function(e) {
+    var clipData = e.clipboardData || window.clipboardData;
+    if (!clipData) return;
+
+    // 1. 检查是否粘贴了图片文件（截图、复制的图片等）
+    var items = clipData.items;
+    if (items) {
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image/') === 0) {
+                e.preventDefault();
+                var file = items[i].getAsFile();
+                if (!file) return;
+                // 使用 FileReader 将图片转为 base64 data URL（避免 file:// 下 blob URL 被阻止）
+                var reader = new FileReader();
+                reader.onload = function(evt) {
+                    var dataUrl = evt.target.result;
+                    var imgName = 'pasted_image_' + (++_pastedImageCounter) + '.' + (file.type.split('/')[1] || 'png');
+                    var mdImage = '![' + imgName + '](' + dataUrl + ')';
+                    // 默认折叠：base64 太长，编辑器中显示占位注释
+                    var foldId = 'imgfold_' + Date.now() + '_paste';
+                    imageFoldStore.set(foldId, mdImage);
+                    var placeholder = '<!-- ' + foldId + ' 🖼️ [图片已折叠: ' + imgName + '] -->';
+                    insertTextAtCursor('\n' + placeholder + '\n');
+                    svgFolded = true;
+                    showToast('已插入粘贴的图片（已折叠，点击格式栏按钮展开）');
+                };
+                reader.readAsDataURL(file);
+                return;
+            }
+        }
+    }
+
+    // 2. 检查是否粘贴了 SVG 文本
+    var text = clipData.getData('text/plain') || '';
+    var trimmed = text.trim();
+    if (/^<svg[\s>]/i.test(trimmed) && /<\/svg>\s*$/i.test(trimmed)) {
+        // 检查光标位置是否已在代码块内，如果是则不包裹
+        var before = editor.value.substring(0, editor.selectionStart);
+        var fenceCount = (before.match(/^```/gm) || []).length;
+        if (fenceCount % 2 === 1) return; // 已在代码块内，不处理
+        e.preventDefault();
+        var wrapped = '```svg\n' + trimmed + '\n```';
+        // 插入后立即折叠：编辑器只显示占位注释，预览正常渲染
+        var foldId = 'svgfold_' + Date.now() + '_paste';
+        svgFoldStore.set(foldId, wrapped);
+        var placeholder = '<!-- ' + foldId + ' 📊 [SVG 图表已折叠 - 点击格式栏按钮展开] -->';
+        insertTextAtCursor(placeholder);
+        svgFolded = true;
+        showToast('已自动将 SVG 包裹为代码块并折叠（点击格式栏按钮展开）');
+    }
 });
 
 function updateExportState() {
@@ -2433,6 +2554,9 @@ function setView(mode) {
 const svgFoldStore = new Map(); // 存储折叠的 SVG 内容：key(占位符ID) -> SVG代码
 let svgFolded = false;
 
+// ========== 图片 base64 折叠存储 ==========
+const imageFoldStore = new Map(); // 存储折叠的图片 Markdown：key(占位符ID) -> ![alt](data:...)
+
 function toggleSvgFold() {
     if (svgFolded) {
         unfoldAllSvg();
@@ -2443,33 +2567,49 @@ function toggleSvgFold() {
 
 function foldAllSvg() {
     let content = editor.value;
-    // 匹配 <details>...<svg>...</svg>...</details> 或独立 <svg>...</svg> 块
-    const detailsSvgRegex = /<details>\s*\n<summary>[^<]*<\/summary>\s*\n\s*\n([\s\S]*?<svg[\s\S]*?<\/svg>)\s*\n\s*\n<\/details>/gi;
-    const standaloneSvgRegex = /(<svg[\s\S]*?<\/svg>)/gi;
     let foldCount = 0;
-    // 先处理 <details> 包裹的 SVG
+    // 1. 先处理 ```svg 代码围栏包裹的 SVG
+    const fencedSvgRegex = /^(`{3,})svg\s*\n([\s\S]*?)\n\1\s*$/gm;
+    content = content.replace(fencedSvgRegex, function(match) {
+        if (match.length < 100) return match;
+        const id = 'svgfold_' + Date.now() + '_' + foldCount;
+        svgFoldStore.set(id, match);
+        foldCount++;
+        return '<!-- ' + id + ' 📊 [SVG 图表已折叠 - 点击格式栏按钮展开] -->';
+    });
+    // 2. 处理 <details> 包裹的 SVG
+    const detailsSvgRegex = /<details>\s*\n<summary>[^<]*<\/summary>\s*\n\s*\n([\s\S]*?<svg[\s\S]*?<\/svg>)\s*\n\s*\n<\/details>/gi;
     content = content.replace(detailsSvgRegex, function(match) {
         const id = 'svgfold_' + Date.now() + '_' + foldCount;
         svgFoldStore.set(id, match);
         foldCount++;
         return '<!-- ' + id + ' 📊 [SVG 图表已折叠 - 点击格式栏按钮展开] -->';
     });
-    // 再处理独立的 SVG（不在 details 内的）
+    // 3. 处理独立裸 SVG（不在代码围栏或 details 内的）
+    const standaloneSvgRegex = /(<svg[\s\S]*?<\/svg>)/gi;
     content = content.replace(standaloneSvgRegex, function(match) {
-        // 跳过已经折叠的占位符中的误匹配
-        if (match.length < 100) return match; // 太短的 SVG（如格式栏图标）不折叠
+        if (match.length < 100) return match;
         const id = 'svgfold_' + Date.now() + '_' + foldCount;
         svgFoldStore.set(id, match);
         foldCount++;
         return '<!-- ' + id + ' 📊 [SVG 图表已折叠 - 点击格式栏按钮展开] -->';
     });
+    // 4. 折叠 base64 图片（data:image/ 开头的长图片链接）
+    const base64ImgRegex = /!\[([^\]]*)\]\((data:image\/[^)]+)\)/g;
+    content = content.replace(base64ImgRegex, function(match, alt) {
+        if (match.length < 200) return match; // 短的 data URL 不折叠
+        const id = 'imgfold_' + Date.now() + '_' + foldCount;
+        imageFoldStore.set(id, match);
+        foldCount++;
+        return '<!-- ' + id + ' 🖼️ [图片已折叠: ' + (alt || '图片') + '] -->';
+    });
     if (foldCount > 0) {
         editor.value = content;
         svgFolded = true;
         updatePreview();
-        showToast('已折叠 ' + foldCount + ' 个 SVG 图表');
+        showToast('已折叠 ' + foldCount + ' 个 SVG/图片');
     } else {
-        showToast('未找到 SVG 图表');
+        showToast('未找到可折叠的 SVG/图片');
     }
 }
 
@@ -2483,25 +2623,39 @@ function unfoldAllSvg() {
             unfoldCount++;
         }
     });
+    // 展开折叠的图片
+    imageFoldStore.forEach(function(imgMd, id) {
+        const placeholder = '<!-- ' + id + ' 🖼️ [图片已折叠: ' + ((imgMd.match(/!\[([^\]]*)\]/) || [])[1] || '图片') + '] -->';
+        if (content.includes(placeholder)) {
+            content = content.replace(placeholder, imgMd);
+            unfoldCount++;
+        }
+    });
     if (unfoldCount > 0) {
         editor.value = content;
         svgFoldStore.clear();
+        imageFoldStore.clear();
         svgFolded = false;
         updatePreview();
-        showToast('已展开 ' + unfoldCount + ' 个 SVG 图表');
+        showToast('已展开 ' + unfoldCount + ' 个 SVG/图片');
     } else {
         svgFoldStore.clear();
+        imageFoldStore.clear();
         svgFolded = false;
-        showToast('没有需要展开的 SVG 图表');
+        showToast('没有需要展开的 SVG/图片');
     }
 }
 
-// 导出/保存前确保 SVG 已展开
+// 导出/保存前确保 SVG 和图片已展开
 function getEditorContentUnfolded() {
     let content = editor.value;
     svgFoldStore.forEach(function(svgCode, id) {
         const placeholder = '<!-- ' + id + ' 📊 [SVG 图表已折叠 - 点击格式栏按钮展开] -->';
         content = content.replace(placeholder, svgCode);
+    });
+    imageFoldStore.forEach(function(imgMd, id) {
+        const placeholder = '<!-- ' + id + ' 🖼️ [图片已折叠: ' + ((imgMd.match(/!\[([^\]]*)\]/) || [])[1] || '图片') + '] -->';
+        content = content.replace(placeholder, imgMd);
     });
     return content;
 }
@@ -2653,8 +2807,23 @@ document.addEventListener('drop', function(e) {
             handleImportFile(file, 'excel');
         } else if (name.match(/\.pptx$/)) {
             handleImportFile(file, 'ppt');
+        } else if (name.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg|ico)$/)) {
+            // 拖拽图片文件：转为 base64 data URL 并默认折叠
+            var imgReader = new FileReader();
+            var imgFileName = file.name;
+            imgReader.onload = function(evt) {
+                var dataUrl = evt.target.result;
+                var mdImage = '![' + imgFileName + '](' + dataUrl + ')';
+                var foldId = 'imgfold_' + Date.now() + '_drop';
+                imageFoldStore.set(foldId, mdImage);
+                var placeholder = '<!-- ' + foldId + ' 🖼️ [图片已折叠: ' + imgFileName + '] -->';
+                insertTextAtCursor('\n' + placeholder + '\n');
+                svgFolded = true;
+                showToast('已插入图片: ' + imgFileName + '（已折叠）');
+            };
+            imgReader.readAsDataURL(file);
         } else {
-            showAlert('不支持的文件格式，请拖放 MD/PDF/Word/Excel/PPT 文件');
+            showAlert('不支持的文件格式，请拖放 MD/PDF/Word/Excel/PPT/图片 文件');
         }
     }
 });
