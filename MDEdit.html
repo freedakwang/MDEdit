@@ -2676,6 +2676,7 @@ function scrollToTop() {
 let panelsSwapped = localStorage.getItem('md-editor-panels-swapped') === 'true';
 
 var _previewPanel = document.querySelector('.preview-panel');
+var _editorPanel = document.querySelector('.editor-panel');
 function applyPanelOrder() {
     if (panelsSwapped) {
         _editorPanel.style.order = '1';
@@ -2695,6 +2696,7 @@ function swapPanels() {
 
 applyPanelOrder();
 
+var _mainArea = document.getElementById('mainArea');
 var _elBtnBoth = document.getElementById('btnBoth');
 var _elBtnEditor = document.getElementById('btnEditor');
 var _elBtnPreview = document.getElementById('btnPreview');
@@ -3120,8 +3122,6 @@ panelResizer.addEventListener('mousedown', function(e) {
 });
 
 var _resizeRAF = null;
-var _mainArea = document.getElementById('mainArea');
-var _editorPanel = document.querySelector('.editor-panel');
 document.addEventListener('mousemove', function(e) {
     if (!isResizing) return;
     if (_resizeRAF) return; // rAF 节流
