@@ -1,0 +1,9 @@
+{
+  "name": "md-svg-to-jpg",
+  "private": true,
+  "type": "module",
+  "description": "Read a Markdown file, convert embedded SVG to JPEG files in an asset directory, emit new Markdown.",
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

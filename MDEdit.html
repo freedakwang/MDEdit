@@ -278,8 +278,14 @@
         }
         .editor-panel .panel-header .dot { background: #22c55e; }
         .preview-panel .panel-header .dot { background: var(--accent); }
-        .copy-all-btn {
+        .preview-header-actions {
             margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .copy-all-btn {
             background: transparent;
             border: 1px solid var(--border-color);
             color: var(--text-secondary);
@@ -294,6 +300,20 @@
         }
         .copy-all-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
         .copy-all-btn.copied { background: #22c55e; color: #fff; border-color: #22c55e; }
+        .copy-wechat-placeholder-btn {
+            border-color: #07c160;
+            color: #059669;
+        }
+        .copy-wechat-placeholder-btn:hover {
+            background: #07c160;
+            color: #fff;
+            border-color: #07c160;
+        }
+        .copy-wechat-placeholder-btn.copied {
+            background: #22c55e;
+            color: #fff;
+            border-color: #22c55e;
+        }
 
         /* 格式工具栏 */
         .format-bar {
@@ -1296,6 +1316,17 @@
         .ai-send-btn:hover { background: var(--accent-hover); }
         .ai-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .ai-send-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .ai-insert-options {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+            user-select: none;
+        }
+        .ai-insert-options label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .ai-insert-options input { accent-color: var(--accent); }
         .ai-stop-btn {
             background: #ef4444;
         }
@@ -1481,7 +1512,7 @@
 <div class="main" id="mainArea">
     <!-- 预览 -->
     <div class="preview-panel">
-        <div class="panel-header"><span class="dot"></span> 预览<button class="copy-all-btn" onclick="copyPreviewText()" title="复制富文本（可直接粘贴到公众号/WPS）">复制</button></div>
+        <div class="panel-header"><span class="dot"></span> 预览<div class="preview-header-actions"><button type="button" class="copy-all-btn" id="btnCopyPreview" onclick="copyPreviewText()" title="复制富文本（可直接粘贴到公众号/WPS）">复制</button><button type="button" class="copy-all-btn copy-wechat-placeholder-btn" id="btnCopyWechatPlaceholder" onclick="copyPreviewWechatNoSvg()" title="复制公众号排版：不携带 SVG，仅插入「文件名-图N」占位提示，配图请在微信后台自行上传">公众号</button></div></div>
         <div id="preview"></div>
     </div>
 
@@ -1554,6 +1585,9 @@
             <button class="ai-send-btn" id="aiSendBtn" onclick="sendAIMessage()" title="发送 (Enter)">
                 <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
             </button>
+        </div>
+        <div class="ai-insert-options" title="开启后，使用下方「插入到光标 / 替换 / 追加」时，将 Markdown 中的 SVG 转为 JPG 再写入（矢量可编辑性会丢失）">
+            <label><input type="checkbox" id="aiInsertSvgAsJpeg">插入 AI 回复时把 SVG 转为 JPG</label>
         </div>
     </div>
 </div>
@@ -3225,6 +3259,36 @@ var inlineStyleMap = {
     'TR': ''
 };
 
+/** 当前文档名去掉路径与扩展名，用于公众号占位中的「文件名-图N」 */
+function getWechatSvgPlaceholderBaseName() {
+    var n = currentFileName || '';
+    n = n.replace(/^.*[/\\]/, '');
+    n = n.replace(/\.(md|markdown|txt)$/i, '');
+    return n.trim() ? n : '文档';
+}
+
+/**
+ * 将预览 DOM 中的 SVG（含 ```svg 渲染块）替换为纯文字占位，便于公众号侧自行传图
+ */
+function replaceSvgWithWechatFilenamePlaceholders(container) {
+    var base = getWechatSvgPlaceholderBaseName();
+    var idx = 0;
+    function nextText() {
+        idx++;
+        return '[请插入配图：' + base + '-图' + idx + ']';
+    }
+    container.querySelectorAll('.svg-code-block').forEach(function(el) {
+        var p = document.createElement('p');
+        p.textContent = nextText();
+        el.parentNode.replaceChild(p, el);
+    });
+    container.querySelectorAll('svg').forEach(function(svg) {
+        var p = document.createElement('p');
+        p.textContent = nextText();
+        svg.parentNode.replaceChild(p, svg);
+    });
+}
+
 function applyInlineStyles(container) {
     // 先移除复制按钮（在清除 class 之前）
     var btns = container.querySelectorAll('.copy-code-btn');
@@ -3249,7 +3313,7 @@ function applyInlineStyles(container) {
 }
 
 async function copyPreviewText() {
-    var btn = document.querySelector('.copy-all-btn');
+    var btn = document.getElementById('btnCopyPreview');
     btn.textContent = '处理中…';
 
     // 获取解析后的 HTML
@@ -3267,10 +3331,36 @@ async function copyPreviewText() {
     // 包裹容器样式
     var wrappedHTML = '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Helvetica Neue\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif;max-width:100%;color:#333;font-size:15px;line-height:2;">' + temp.innerHTML + '</div>';
 
-    await copyToClipboard(preview.innerText || '', wrappedHTML);
+    await copyToClipboard(temp.innerText || '', wrappedHTML);
     btn.textContent = '已复制';
     btn.classList.add('copied');
     setTimeout(function() { btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+}
+
+/** 预览栏：公众号复制 — 不包含 SVG，仅保留「文件名-图N」文字占位 */
+async function copyPreviewWechatNoSvg() {
+    var btn = document.getElementById('btnCopyWechatPlaceholder');
+    if (!btn) return;
+    var raw = getEditorContentUnfolded().trim();
+    if (!raw) { showToast('编辑器内容为空'); return; }
+    btn.textContent = '处理中…';
+
+    var html = renderMarkdownHTML(raw);
+    var temp = document.createElement('div');
+    temp.innerHTML = html;
+    replaceSvgWithWechatFilenamePlaceholders(temp);
+
+    try { html = await embedImagesInHTML(temp.innerHTML); } catch (e) {}
+    temp.innerHTML = html;
+    applyInlineStyles(temp);
+
+    var wrappedHTML = '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Helvetica Neue\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif;max-width:100%;color:#333;font-size:15px;line-height:2;">' + temp.innerHTML + '</div>';
+    await copyToClipboard(temp.innerText || '', wrappedHTML);
+
+    btn.textContent = '已复制';
+    btn.classList.add('copied');
+    showToast('已复制：SVG 已改为文件名占位，配图请在公众号编辑器中上传');
+    setTimeout(function() { btn.textContent = '公众号'; btn.classList.remove('copied'); }, 2000);
 }
 
 // ========== 代码块复制按钮 ==========
@@ -4031,6 +4121,7 @@ autoLoadFile().then(async function() {
 
 // ========== AI 助手功能 ==========
 const AI_SETTINGS_KEY = 'md-editor-ai-settings';
+const AI_INSERT_SVG_JPEG_KEY = 'md-editor-ai-insert-svg-jpeg';
 const AI_MEMORY_KEY = 'md-editor-ai-memory';
 let aiChatHistory = []; // {role, content}
 let aiDisplayMessages = []; // 兼容保留（已迁移到 IndexedDB）
