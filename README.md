@@ -45,7 +45,7 @@ MDEdit is a browser-based Markdown editor that works out of the box by simply op
   - [Keyboard Shortcuts](#keyboard-shortcuts)
   - [Status Bar](#status-bar)
   - [Auto-Save and Draft Recovery](#auto-save-and-draft-recovery)
-  - [History](#history)
+  - [Library](#library)
   - [FAQ](#faq)
     - [Q: Images not displaying?](#q-images-not-displaying)
     - [Q: Exported file has formatting issues in WPS?](#q-exported-file-has-formatting-issues-in-wps)
@@ -138,7 +138,7 @@ Three action buttons appear below each AI response:
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  Toolbar: Open | Import | Save | Export | Search | History | Outline │
+│  Toolbar: Open | Import | Save | Export | Search | Library | Outline │
 ├────────────────────┬─┬───────────────────────────────┤
 │                    │ │                               │
 │   Editor Panel     │↔│     Preview Panel             │
@@ -363,11 +363,12 @@ The status bar at the bottom of the page displays:
 
 ---
 
-## History
+## Library
 
-- Click the **"History"** button in the toolbar to view recently opened files
-- Click to quickly reopen a file
-- Supports removing individual records or clearing all history
+- Click the **"Library"** button in the toolbar to manage all your documents
+- View all documents saved in the IndexedDB document store
+- Supports sorting by processing time (newest/oldest) and filename (A-Z/Z-A)
+- One-click to reopen any document or permanently delete them
 
 ---
 
@@ -383,7 +384,7 @@ The status bar at the bottom of the page displays:
 
 ### Q: Browser says storage is full?
 
-**A:** Browser local storage is limited (typically 5–10 MB). Storing too many documents may exceed the limit. You can delete old documents you no longer need via the search function to free up space.
+**A:** This issue is completely solved! MDEdit now uses IndexedDB as its core database, offering hundreds of MBs to GBs of capacity. The 5MB `localStorage` limit for large files and heavy drafts is a thing of the past.
 
 ### Q: Can I use it offline?
 
@@ -462,7 +463,7 @@ MDEdit 是一款基于浏览器的 Markdown 编辑器，无需安装，打开 HT
   - [快捷键一览](#快捷键一览)
   - [状态栏说明](#状态栏说明)
   - [自动保存与草稿恢复](#自动保存与草稿恢复)
-  - [历史记录](#历史记录)
+  - [资料库](#资料库)
   - [常见问题](#常见问题)
     - [Q: 图片无法显示？](#q-图片无法显示)
     - [Q: 导出的文件在 WPS 中格式不对？](#q-导出的文件在-wps-中格式不对)
@@ -555,7 +556,7 @@ AI 助手采用三层记忆架构，智能管理对话上下文：
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  工具栏：打开 | 导入 | 保存 | 导出 | 搜索 | 历史 | 大纲 │
+│  工具栏：打开 | 导入 | 保存 | 导出 | 搜索 | 资料库 | 大纲 │
 ├────────────────────┬─┬───────────────────────────┤
 │                    │ │                           │
 │     编辑器面板      │↔│     预览面板              │
@@ -780,11 +781,12 @@ AI 助手采用三层记忆架构，智能管理对话上下文：
 
 ---
 
-## 历史记录
+## 资料库
 
-- 点击工具栏 **「历史」** 按钮查看最近打开的文件
-- 点击可快速重新打开
-- 支持移除单条记录或清空全部记录
+- 点击工具栏 **「资料库」** 按钮可以一键管理本地存储的所有文档
+- 支持 **4 种排序方式**：按处理时间 (由近到远/由远到近) 和按文件名 (A-Z/Z-A)
+- 一览无余地查阅所有的文章状态（容量大小与修改时间）
+- 支持随时提取并在主版器中恢复任何文章，或是彻底将它们从本地内存中删除去释放空间
 
 ---
 
@@ -800,7 +802,7 @@ AI 助手采用三层记忆架构，智能管理对话上下文：
 
 ### Q: 浏览器提示存储空间不足？
 
-**A:** 浏览器本地存储空间有限（通常 5-10 MB），存储过多文档可能超出限制。可在搜索功能中删除不需要的旧文档释放空间。
+**A:** 这个问题已经一劳永逸啦！MDEdit 已全量更换至基于 IndexedDB 的海量高频存储内核去保障所有的文档同步与读取，不再受原本极为弱小受限的 5MB `localStorage` 上限影响！即使是包含众多 Base64 图片的超长巨型图文也能无感地丝滑编写。
 
 ### Q: 可以离线使用吗？
 
