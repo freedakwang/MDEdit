@@ -42,8 +42,8 @@ sleep 1
 NEW_PID=$(lsof -t -i:$PORT 2>/dev/null)
 if [ ! -z "$NEW_PID" ]; then
     echo "🎉 部署已顺利完成！服务正在稳定运行中 (PID: $NEW_PID)。"
-    echo "👉 您的应用访问地址为: http://$(hostname -I | awk '{print $1}'):$PORT/MDEdit.html"
-    echo "   (如果在本地运行，可直接访问: http://localhost:$PORT/MDEdit.html)"
+    echo "👉 您的应用访问地址为: http://localhost:$PORT/MDEdit.html"
+    echo "   (如果在局域网内，请使用设备的实际 IP 地址访问，如 http://192.168.x.x:$PORT/MDEdit.html)"
 else
     echo "⚠️ 警告：服务启动似乎存在异常，请检查 deploy_server.log 中的报错信息。"
 fi
