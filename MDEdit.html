@@ -224,7 +224,8 @@
             max-width: 148px;
         }
 
-        .toolbar button {
+        .toolbar button,
+        .toolbar a.toolbar-link-button {
             background: transparent;
             border: none;
             color: #64748b;
@@ -239,8 +240,10 @@
             white-space: nowrap;
             position: relative;
             overflow: hidden;
+            text-decoration: none;
         }
-        .toolbar button::before {
+        .toolbar button::before,
+        .toolbar a.toolbar-link-button::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -250,19 +253,24 @@
             transition: opacity 0.3s;
             pointer-events: none;
         }
-        .toolbar button:hover:not(:disabled)::before { opacity: 1; }
-        .toolbar button:hover:not(:disabled) {
+        .toolbar button:hover:not(:disabled)::before,
+        .toolbar a.toolbar-link-button:hover::before { opacity: 1; }
+        .toolbar button:hover:not(:disabled),
+        .toolbar a.toolbar-link-button:hover {
             color: #2563eb;
             transform: translateY(-1px);
             text-shadow: 0 0 8px rgba(37,99,235,0.2);
         }
-        .toolbar button:active:not(:disabled) {
+        .toolbar button:active:not(:disabled),
+        .toolbar a.toolbar-link-button:active {
             transform: translateY(0) scale(0.97);
         }
         .toolbar button:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        .toolbar button svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: filter 0.25s; }
-        .toolbar button:hover:not(:disabled) svg { filter: drop-shadow(0 0 3px rgba(37,99,235,0.4)); }
+        .toolbar button svg,
+        .toolbar a.toolbar-link-button svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: filter 0.25s; }
+        .toolbar button:hover:not(:disabled) svg,
+        .toolbar a.toolbar-link-button:hover svg { filter: drop-shadow(0 0 3px rgba(37,99,235,0.4)); }
 
         .toolbar .spacer { flex: 1; }
 
@@ -1781,10 +1789,10 @@
 
     <div class="divider"></div>
 
-    <button onclick="openSvgEditor()" title="打开 SVG 编辑器处理 SVG 文件">
+    <a class="toolbar-link-button" href="https://svgedit.all8ai.top/" target="_blank" rel="noopener noreferrer" title="打开 SVG 编辑器处理 SVG 文件">
         <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8v8H8z"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>
         SVG编辑
-    </button>
+    </a>
 
     <div class="divider"></div>
 
@@ -2326,11 +2334,6 @@ document.addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeToolbarDropdowns();
 });
-
-function openSvgEditor() {
-    const win = window.open('https://svgedit.all8ai.top/', '_blank', 'noopener,noreferrer');
-    if (!win) showAlert('浏览器阻止了 SVG 编辑器窗口，请允许弹出窗口后重试。');
-}
 
 // ========== localStorage 安全写入 ==========
 function safeLocalStorageSet(key, value) {
