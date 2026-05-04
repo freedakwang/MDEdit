@@ -219,6 +219,15 @@
             transform: none;
             text-shadow: none;
         }
+        .toolbar-dropdown-menu button.active {
+            background: linear-gradient(135deg, #2563eb, #0891b2);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(37,99,235,0.22);
+        }
+        .toolbar-dropdown-menu button.active:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb, #0891b2);
+            color: #fff;
+        }
         .toolbar-dropdown-menu #basePathHint {
             margin: 4px 8px 2px;
             max-width: 148px;
@@ -2343,27 +2352,36 @@
     <span class="brand"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><defs><linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2563eb"/><stop offset="50%" stop-color="#0891b2"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient></defs><path d="M12 20h9" stroke="url(#brandGrad)"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" stroke="url(#brandGrad)"/></svg>MD Editor</span>
     <div class="divider"></div>
 
-    <div class="toolbar-group toolbar-group-in">
-        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownIn')" title="输入：新建、打开、导入和图片目录" aria-haspopup="true" aria-expanded="false">
-            输入
+    <div class="toolbar-group toolbar-group-file">
+        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownFile')" title="文件：新建、打开、保存、导入和导出" aria-haspopup="true" aria-expanded="false">
+            文件
             <svg class="toolbar-dropdown-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
         </button>
-        <div class="toolbar-dropdown-menu" id="toolbarDropdownIn">
+        <div class="toolbar-dropdown-menu" id="toolbarDropdownFile">
             <button onclick="newFile()" title="新建文档">
                 <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                 新建
             </button>
-
             <button onclick="openFile()" title="打开文件">
                 <svg viewBox="0 0 24 24"><path d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1"/><path d="M20.5 16.5a2.12 2.12 0 00-1.64-1H5.14A2.12 2.12 0 003 17.38V18a2 2 0 002 2h14a2 2 0 002-2v-.5z"/></svg>
                 打开
             </button>
-
+            <button onclick="saveFile()" title="保存为 .md 文件 (⌘/Ctrl+S)">
+                <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+                保存
+            </button>
+            <button onclick="saveAsFile()" title="另存为新 .md 文件">
+                <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><path d="M7 3h8v5H7z"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
+                另存为
+            </button>
             <button onclick="showImportModal()" title="导入 PDF/Word/Excel/PPT 转为 Markdown">
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 导入
             </button>
-
+            <button id="btnExport" onclick="showExportModal()" title="导出为其他格式" disabled>
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                导出
+            </button>
             <button onclick="setImageBasePath()" title="选择图片所在目录（用于正确显示 MD 文档中的图片）">
                 <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
                 图片目录
@@ -2374,24 +2392,47 @@
 
     <div class="divider"></div>
 
-    <div class="toolbar-group toolbar-group-out">
-        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownOut')" title="输出：保存、另存为和导出" aria-haspopup="true" aria-expanded="false">
-            输出
+    <div class="toolbar-group toolbar-group-view">
+        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownView')" title="视图：布局、预览、切换和大纲" aria-haspopup="true" aria-expanded="false">
+            视图
             <svg class="toolbar-dropdown-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
         </button>
-        <div class="toolbar-dropdown-menu" id="toolbarDropdownOut">
-            <button onclick="saveFile()" title="保存为 .md 文件 (⌘/Ctrl+S)">
-                <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
-                保存
+        <div class="toolbar-dropdown-menu" id="toolbarDropdownView">
+            <button class="active" id="btnBoth" onclick="setView('both')" title="同时显示编辑器和预览">双栏</button>
+            <button id="btnEditor" onclick="setView('editor-only')" title="只显示编辑器">编辑</button>
+            <button id="btnPreview" onclick="setView('preview-only')" title="只显示预览">预览</button>
+            <button onclick="swapPanels()" title="切换编辑器和预览的左右位置">
+                <svg viewBox="0 0 24 24"><polyline points="17,1 21,5 17,9"/><polyline points="7,15 3,19 7,23"/><line x1="21" y1="5" x2="9" y2="5"/><line x1="3" y1="19" x2="15" y2="19"/></svg>
+                切换左右
             </button>
-            <button onclick="saveAsFile()" title="另存为新 .md 文件">
-                <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><path d="M7 3h8v5H7z"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
-                另存为
+            <button onclick="toggleOutline()" title="文档大纲">
+                <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="10" y2="6"/><line x1="3" y1="12" x2="14" y2="12"/><line x1="3" y1="18" x2="10" y2="18"/><polyline points="17,10 21,6 17,2"/></svg>
+                大纲
             </button>
+            <button onclick="toggleVersionPanel()" title="当前文档版本历史">
+                <svg viewBox="0 0 24 24"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 6.3L3 8"/><path d="M12 7v5l3 2"/></svg>
+                版本历史
+            </button>
+        </div>
+    </div>
 
-            <button id="btnExport" onclick="showExportModal()" title="导出为其他格式" disabled>
-                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                导出
+    <div class="toolbar-group toolbar-group-tools">
+        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownTools')" title="工具：SVG 编辑、AI 设置和支持入口" aria-haspopup="true" aria-expanded="false">
+            工具
+            <svg class="toolbar-dropdown-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="toolbar-dropdown-menu" id="toolbarDropdownTools">
+            <button onclick="window.open('https://svgedit.all8ai.top/', '_blank', 'noopener,noreferrer')" title="打开 SVG 编辑器处理 SVG 文件">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8v8H8z"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>
+                SVG 编辑
+            </button>
+            <button onclick="showAISettings()" title="配置 AI 助手">
+                <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v1a3 3 0 0 1-1.1 2.3"/><path d="M6 7h1V6a4 4 0 0 1 8 0"/><circle cx="12" cy="15" r="3"/></svg>
+                AI 设置
+            </button>
+            <button onclick="showGroupModal()" title="加入技术支持群">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                支持群
             </button>
         </div>
     </div>
@@ -2400,62 +2441,24 @@
 
     <button onclick="toggleDocFind()" title="当前文档查找/替换 (⌘/Ctrl+F)">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6"/></svg>
-        查找
+        文内查找
     </button>
 
     <button onclick="toggleSearch()" title="搜索文档库 (⌘/Ctrl+Shift+F)">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        文库搜索
+        全库搜索
     </button>
 
-    <div class="divider"></div>
-
-    <div class="toolbar-group toolbar-group-manage">
-        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownManage')" title="管理：资料库、版本、大纲" aria-haspopup="true" aria-expanded="false">
-            管理
-            <svg class="toolbar-dropdown-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
-        <div class="toolbar-dropdown-menu" id="toolbarDropdownManage">
-            <button onclick="toggleLibrary()" title="资料库 - 本地文档集管理">
-                <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                资料库
-            </button>
-
-            <button onclick="toggleVersionPanel()" title="当前文档版本历史">
-                <svg viewBox="0 0 24 24"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 6.3L3 8"/><path d="M12 7v5l3 2"/></svg>
-                版本
-            </button>
-
-            <button onclick="toggleOutline()" title="文档大纲">
-                <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="10" y2="6"/><line x1="3" y1="12" x2="14" y2="12"/><line x1="3" y1="18" x2="10" y2="18"/><polyline points="17,10 21,6 17,2"/></svg>
-                大纲
-            </button>
-        </div>
-    </div>
+    <button onclick="toggleLibrary()" title="资料库 - 本地文档集管理">
+        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        资料库
+    </button>
 
     <div class="spacer"></div>
 
     <span class="file-name" id="fileName">未打开文件</span>
 
     <div class="divider"></div>
-
-    <a class="toolbar-link-button" href="https://svgedit.all8ai.top/" target="_blank" rel="noopener noreferrer" title="打开 SVG 编辑器处理 SVG 文件">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8v8H8z"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>
-        SVG编辑
-    </a>
-
-    <div class="divider"></div>
-
-    <div class="view-toggle">
-        <button class="active" id="btnBoth" onclick="setView('both')">双栏</button>
-        <button id="btnEditor" onclick="setView('editor-only')">编辑</button>
-        <button id="btnPreview" onclick="setView('preview-only')">预览</button>
-    </div>
-
-    <button onclick="swapPanels()" title="切换编辑器和预览的左右位置">
-        <svg viewBox="0 0 24 24"><polyline points="17,1 21,5 17,9"/><polyline points="7,15 3,19 7,23"/><line x1="21" y1="5" x2="9" y2="5"/><line x1="3" y1="19" x2="15" y2="19"/></svg>
-        切换
-    </button>
 
     <button id="btnDarkMode" onclick="toggleDarkMode()" title="切换暗色/亮色模式">
         <svg viewBox="0 0 24 24" id="darkModeIcon"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
