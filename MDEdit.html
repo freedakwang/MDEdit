@@ -1110,6 +1110,442 @@
         .history-item .history-actions .btn-restore:hover { border-color: var(--accent); color: var(--accent); background: #eff6ff; }
         .history-item .history-actions .btn-delete:hover { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
 
+        /* ========== 通用面板标题区（资料库 / 版本 / 大纲共用） ========== */
+        .panel-head-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .panel-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+        .panel-title::before {
+            content: "";
+            display: inline-block;
+            width: 3px;
+            height: 14px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+        .panel-head-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .panel-head-action-btn {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .panel-head-action-btn:hover { border-color: var(--accent); color: var(--accent); background: #eff6ff; }
+        .panel-head-action-btn-danger {
+            color: #ef4444;
+            border-color: #fecaca;
+            background: #fff;
+        }
+        .panel-head-action-btn-danger:hover { border-color: #ef4444; color: #fff; background: #ef4444; }
+        .panel-close-btn {
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            line-height: 1;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .panel-close-btn:hover { background: #fee2e2; color: #dc2626; }
+        .history-panel .history-header .panel-head-action-btn,
+        .outline-panel .outline-header .panel-head-action-btn {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+        .history-panel .history-header .panel-head-action-btn:hover,
+        .outline-panel .outline-header .panel-head-action-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: #eff6ff;
+        }
+        .history-panel .history-header .panel-head-action-btn-danger,
+        .outline-panel .outline-header .panel-head-action-btn-danger {
+            color: #ef4444;
+            border-color: #fecaca;
+            background: #fff;
+        }
+        .history-panel .history-header .panel-head-action-btn-danger:hover,
+        .outline-panel .outline-header .panel-head-action-btn-danger:hover {
+            border-color: #ef4444;
+            color: #fff;
+            background: #ef4444;
+        }
+        .history-panel .history-header .panel-close-btn,
+        .outline-panel .outline-header .panel-close-btn {
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            line-height: 1;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+        .history-panel .history-header .panel-close-btn:hover,
+        .outline-panel .outline-header .panel-close-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        :root.dark .panel-head-action-btn { background: var(--bg-primary); }
+        :root.dark .panel-head-action-btn:hover { background: #313244; color: #89b4fa; }
+        :root.dark .panel-head-action-btn-danger { background: transparent; border-color: #f38ba8; color: #f38ba8; }
+        :root.dark .panel-head-action-btn-danger:hover { background: #f38ba8; color: #1e1e2e; }
+        :root.dark .panel-close-btn:hover { background: #45475a; color: #f38ba8; }
+        :root.dark .history-panel .history-header .panel-head-action-btn,
+        :root.dark .outline-panel .outline-header .panel-head-action-btn {
+            background: var(--bg-primary);
+        }
+        :root.dark .history-panel .history-header .panel-head-action-btn:hover,
+        :root.dark .outline-panel .outline-header .panel-head-action-btn:hover {
+            background: #313244;
+            color: #89b4fa;
+            border-color: #89b4fa;
+        }
+        :root.dark .history-panel .history-header .panel-head-action-btn-danger,
+        :root.dark .outline-panel .outline-header .panel-head-action-btn-danger {
+            background: transparent;
+            border-color: #f38ba8;
+            color: #f38ba8;
+        }
+        :root.dark .history-panel .history-header .panel-head-action-btn-danger:hover,
+        :root.dark .outline-panel .outline-header .panel-head-action-btn-danger:hover {
+            background: #f38ba8;
+            color: #1e1e2e;
+            border-color: #f38ba8;
+        }
+        :root.dark .history-panel .history-header .panel-close-btn:hover,
+        :root.dark .outline-panel .outline-header .panel-close-btn:hover {
+            background: #45475a;
+            color: #f38ba8;
+        }
+
+        /* ========== 资料库面板 ========== */
+        #libraryPanel .history-header,
+        #versionPanel .history-header.panel-head,
+        #outlinePanel .outline-header.panel-head {
+            padding: 12px 14px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+        :root.dark #versionPanel .history-header.panel-head,
+        :root.dark #outlinePanel .outline-header.panel-head {
+            background: linear-gradient(180deg, var(--bg-primary) 0%, #181825 100%);
+        }
+        .library-toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .library-toolbar-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: normal;
+        }
+        .library-toolbar-row > .library-spacer { flex: 1; }
+        .library-sort-row { justify-content: space-between; }
+        .library-sort-row > label {
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .library-sort-select {
+            flex: 1;
+            margin-left: 8px;
+            padding: 5px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 12px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .library-sort-select:hover, .library-sort-select:focus { border-color: var(--accent); }
+        .library-filter-input {
+            flex: 1;
+            padding: 6px 10px;
+            font-size: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .library-filter-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+        .library-star-filter {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .library-star-filter:hover { border-color: var(--accent); color: var(--accent); }
+        .library-star-filter input { margin: 0; cursor: pointer; }
+        .library-toolbar-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 6px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .library-toolbar-btn:hover { border-color: var(--accent); color: var(--accent); background: #eff6ff; }
+        .library-toolbar-btn-danger {
+            color: #ef4444;
+            border-color: #fecaca;
+            background: #fff;
+        }
+        .library-toolbar-btn-danger:hover { border-color: #ef4444; color: #fff; background: #ef4444; }
+        #libraryPanel .history-header .library-toolbar-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 6px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.3;
+            white-space: nowrap;
+        }
+        #libraryPanel .history-header .library-toolbar-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: #eff6ff;
+        }
+        #libraryPanel .history-header .library-toolbar-btn-danger {
+            color: #ef4444;
+            border-color: #fecaca;
+            background: #fff;
+        }
+        #libraryPanel .history-header .library-toolbar-btn-danger:hover {
+            border-color: #ef4444;
+            color: #fff;
+            background: #ef4444;
+        }
+        :root.dark #libraryPanel .history-header .library-toolbar-btn {
+            background: var(--bg-primary);
+        }
+        :root.dark #libraryPanel .history-header .library-toolbar-btn:hover {
+            background: #313244;
+            color: #89b4fa;
+            border-color: #89b4fa;
+        }
+        :root.dark #libraryPanel .history-header .library-toolbar-btn-danger {
+            background: transparent;
+            border-color: #f38ba8;
+            color: #f38ba8;
+        }
+        :root.dark #libraryPanel .history-header .library-toolbar-btn-danger:hover {
+            background: #f38ba8;
+            color: #1e1e2e;
+            border-color: #f38ba8;
+        }
+        .library-selected-count {
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            padding: 0 4px;
+        }
+        #libraryPanel .history-list { padding: 10px; }
+        #libraryPanel .history-item {
+            padding: 10px 12px 8px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+            transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
+        }
+        #libraryPanel .history-item:hover {
+            background: var(--bg-primary);
+            box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+        }
+        .library-item-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .library-item-check { margin-top: 3px; cursor: pointer; flex-shrink: 0; }
+        .library-item-name {
+            flex: 1;
+            min-width: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .library-item-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .library-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            padding-left: 22px;
+            line-height: 1.4;
+        }
+        .library-item-meta .meta-dot {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            opacity: 0.5;
+        }
+        .library-item-meta .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: rgba(59,130,246,0.1);
+            color: var(--accent);
+            font-size: 10px;
+        }
+        .library-item-meta .meta-folder {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: rgba(148,163,184,0.15);
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+        .library-item-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+            padding-left: 22px;
+        }
+        .library-act {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.1s;
+        }
+        .library-act svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .library-act:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: #eff6ff;
+        }
+        .library-act:active { transform: scale(0.94); }
+        .library-act.is-starred {
+            color: #f59e0b;
+            border-color: #fde68a;
+            background: #fffbeb;
+        }
+        .library-act.is-starred:hover {
+            color: #fff;
+            background: #f59e0b;
+            border-color: #f59e0b;
+        }
+        .library-act-danger:hover {
+            color: #fff;
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+        :root.dark #libraryPanel .history-header {
+            background: linear-gradient(180deg, var(--bg-primary) 0%, #181825 100%);
+        }
+        :root.dark .library-toolbar-btn:hover { background: #313244; }
+        :root.dark .library-toolbar-btn-danger { background: transparent; border-color: #f38ba8; color: #f38ba8; }
+        :root.dark .library-toolbar-btn-danger:hover { background: #f38ba8; color: #1e1e2e; }
+        :root.dark .library-star-filter:hover { background: #313244; }
+        :root.dark .library-act { background: #181825; border-color: #313244; }
+        :root.dark .library-act:hover { background: #313244; color: #89b4fa; border-color: #89b4fa; }
+        :root.dark .library-act.is-starred { background: #45475a; color: #f9e2af; border-color: #f9e2af; }
+        :root.dark .library-act.is-starred:hover { background: #f9e2af; color: #1e1e2e; }
+        :root.dark .library-act-danger:hover { background: #f38ba8; color: #1e1e2e; border-color: #f38ba8; }
+        :root.dark #libraryPanel .history-item:hover { background: #313244; }
+        :root.dark .library-item-meta .meta-tag { background: rgba(137,180,250,0.18); color: #89b4fa; }
+        :root.dark .library-item-meta .meta-folder { background: rgba(166,173,200,0.15); color: #a6adc8; }
+
         /* ========== 搜索面板 ========== */
         .search-panel {
             display: none;
@@ -1593,7 +2029,13 @@
             justify-content: space-between;
             gap: 10px;
             flex-wrap: wrap;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
         }
+        .ai-command-header.is-dragging { cursor: grabbing; }
+        .ai-command-header-actions { cursor: default; }
+        .ai-command-header-actions button { cursor: pointer; }
         .ai-command-title {
             display: flex;
             align-items: center;
@@ -1956,23 +2398,25 @@
 
     <div class="divider"></div>
 
+    <button onclick="toggleDocFind()" title="当前文档查找/替换 (⌘/Ctrl+F)">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6"/></svg>
+        查找
+    </button>
+
+    <button onclick="toggleSearch()" title="搜索文档库 (⌘/Ctrl+Shift+F)">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        文库搜索
+    </button>
+
+    <div class="divider"></div>
+
     <div class="toolbar-group toolbar-group-manage">
-        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownManage')" title="管理：查找、文库、资料库、版本、大纲和 AI" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownManage')" title="管理：资料库、版本、大纲" aria-haspopup="true" aria-expanded="false">
             管理
             <svg class="toolbar-dropdown-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
         </button>
         <div class="toolbar-dropdown-menu" id="toolbarDropdownManage">
-            <button onclick="toggleDocFind()" title="当前文档查找/替换 (⌘/Ctrl+F)">
-                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6"/></svg>
-                查找
-            </button>
-
-            <button onclick="toggleSearch()" title="搜索文档库 (⌘/Ctrl+Shift+F)">
-                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                文库搜索
-            </button>
-
-            <button onclick="toggleLibrary()" title="数据库文档集管理">
+            <button onclick="toggleLibrary()" title="资料库 - 本地文档集管理">
                 <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                 资料库
             </button>
@@ -1985,16 +2429,6 @@
             <button onclick="toggleOutline()" title="文档大纲">
                 <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="10" y2="6"/><line x1="3" y1="12" x2="14" y2="12"/><line x1="3" y1="18" x2="10" y2="18"/><polyline points="17,10 21,6 17,2"/></svg>
                 大纲
-            </button>
-
-            <button onclick="toggleAIPanel()" title="AI 助手 - 用 AI 创建和修改文档" id="btnAI">
-                <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v1a3 3 0 0 1-1.1 2.3"/><path d="M6 7h1V6a4 4 0 0 1 8 0"/><path d="M5 10a3 3 0 0 0-3 3v1a3 3 0 0 0 3 3"/><path d="M9 22v-4"/><path d="M15 22v-4"/><circle cx="12" cy="15" r="3"/><path d="M19 14a3 3 0 0 0 0-3"/><path d="M5 14a3 3 0 0 1 0-3"/></svg>
-                AI
-            </button>
-
-            <button onclick="showGroupModal()" title="加入技术支持群">
-                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                支持群
             </button>
         </div>
     </div>
@@ -2289,12 +2723,14 @@
 
 <!-- 大纲面板 -->
 <div class="outline-panel" id="outlinePanel">
-    <div class="outline-header">
-        <span>文档大纲</span>
-        <div style="display:flex;gap:6px;align-items:center;">
-            <button class="outline-action-btn" onclick="copyOutlineMarkdown()" title="复制当前文档目录">复制</button>
-            <button class="outline-action-btn" onclick="insertOutlineMarkdown()" title="插入目录到光标位置">插入</button>
-            <button onclick="toggleOutline()" title="关闭">&times;</button>
+    <div class="outline-header panel-head">
+        <div class="panel-head-bar">
+            <span class="panel-title">文档大纲</span>
+            <div class="panel-head-actions">
+                <button class="panel-head-action-btn" onclick="copyOutlineMarkdown()" title="复制当前文档目录">复制</button>
+                <button class="panel-head-action-btn" onclick="insertOutlineMarkdown()" title="插入目录到光标位置">插入</button>
+                <button class="panel-close-btn" onclick="toggleOutline()" title="关闭">&times;</button>
+            </div>
         </div>
     </div>
     <div class="outline-list" id="outlineList">
@@ -2316,34 +2752,36 @@
 
 <!-- 资料库面板 -->
 <div class="history-panel" id="libraryPanel" style="z-index: 31;">
-    <div class="history-header" style="flex-direction:column; align-items:stretch;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span>数据库文档集</span>
-            <button onclick="toggleLibrary()" title="关闭" style="font-size:18px;padding:2px 8px;background:transparent;border:none;color:var(--text-secondary);cursor:pointer;border-radius:4px;">&times;</button>
+    <div class="history-header">
+        <div class="panel-head-bar">
+            <span class="panel-title">资料库</span>
+            <button class="panel-close-btn" onclick="toggleLibrary()" title="关闭">&times;</button>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:normal;">
-            <label style="color:var(--text-secondary);">排序:</label>
-            <select id="librarySortSelect" onchange="renderLibraryAsync()" style="padding:2px 4px; border:1px solid var(--border-color); border-radius:4px; font-size:12px; background:var(--bg-primary); color:var(--text-primary); cursor:pointer; outline:none;">
-                <option value="timeDesc" selected>处理时间 (由近到远)</option>
-                <option value="timeAsc">处理时间 (由远到近)</option>
-                <option value="nameAsc">文件名 (A-Z)</option>
-                <option value="nameDesc">文件名 (Z-A)</option>
-            </select>
-        </div>
-        <div style="display:flex; gap:6px; margin-top:8px; align-items:center;">
-            <input id="libraryFilterInput" type="text" placeholder="筛选文件名/标签/分类" oninput="renderLibraryAsync()" style="flex:1;padding:5px 7px;font-size:12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);outline:none;">
-            <label style="display:flex;align-items:center;gap:3px;font-size:12px;color:var(--text-secondary);white-space:nowrap;"><input id="libraryStarFilter" type="checkbox" onchange="renderLibraryAsync()">星标</label>
-        </div>
-        <div style="display:flex; gap:6px; margin-top:8px; align-items:center;">
-            <button onclick="toggleSelectVisibleLibraryDocs()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);cursor:pointer;">全选当前</button>
-            <button onclick="batchExportLibraryDocs()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);cursor:pointer;">批量导出</button>
-            <button onclick="batchDeleteLibraryDocs()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid #ef4444;border-radius:4px;background:transparent;color:#ef4444;cursor:pointer;">批量删除</button>
-            <span id="librarySelectedCount" style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">已选 0</span>
-        </div>
-        <div style="display:flex; gap:6px; margin-top:8px;">
-            <button onclick="exportLibraryBackup()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);cursor:pointer;">导出备份</button>
-            <button onclick="triggerLibraryBackupImport()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);cursor:pointer;">导入备份</button>
-            <button onclick="clearLibraryDocs()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid #ef4444;border-radius:4px;background:transparent;color:#ef4444;cursor:pointer;">清空</button>
+        <div class="library-toolbar">
+            <div class="library-toolbar-row library-sort-row">
+                <label>排序</label>
+                <select id="librarySortSelect" class="library-sort-select" onchange="renderLibraryAsync()">
+                    <option value="timeDesc" selected>处理时间 (由近到远)</option>
+                    <option value="timeAsc">处理时间 (由远到近)</option>
+                    <option value="nameAsc">文件名 (A-Z)</option>
+                    <option value="nameDesc">文件名 (Z-A)</option>
+                </select>
+            </div>
+            <div class="library-toolbar-row">
+                <input id="libraryFilterInput" class="library-filter-input" type="text" placeholder="筛选文件名 / 标签 / 分类" oninput="renderLibraryAsync()">
+                <label class="library-star-filter" title="只看星标"><input id="libraryStarFilter" type="checkbox" onchange="renderLibraryAsync()">星标</label>
+            </div>
+            <div class="library-toolbar-row">
+                <button class="library-toolbar-btn" onclick="toggleSelectVisibleLibraryDocs()" title="全选/取消全选当前可见文档">全选</button>
+                <button class="library-toolbar-btn" onclick="batchExportLibraryDocs()" title="将选中的文档批量导出为 .md 文件">批量导出</button>
+                <button class="library-toolbar-btn library-toolbar-btn-danger" onclick="batchDeleteLibraryDocs()" title="批量删除选中的文档">批量删除</button>
+                <span id="librarySelectedCount" class="library-selected-count">已选 0</span>
+            </div>
+            <div class="library-toolbar-row">
+                <button class="library-toolbar-btn" onclick="exportLibraryBackup()" title="导出资料库 JSON 备份">导出备份</button>
+                <button class="library-toolbar-btn" onclick="triggerLibraryBackupImport()" title="导入资料库 JSON 备份">导入备份</button>
+                <button class="library-toolbar-btn library-toolbar-btn-danger" onclick="clearLibraryDocs()" title="清空整个资料库">清空</button>
+            </div>
         </div>
     </div>
     <div class="history-list" id="libraryList"></div>
@@ -2351,11 +2789,13 @@
 
 <!-- 版本历史面板 -->
 <div class="history-panel" id="versionPanel" style="z-index: 32;">
-    <div class="history-header">
-        <span>版本历史</span>
-        <div style="display:flex;gap:8px;align-items:center;">
-            <button onclick="clearCurrentDocVersions()">清空版本</button>
-            <button onclick="toggleVersionPanel()" title="关闭" style="font-size:18px;padding:2px 8px;">&times;</button>
+    <div class="history-header panel-head">
+        <div class="panel-head-bar">
+            <span class="panel-title">版本历史</span>
+            <div class="panel-head-actions">
+                <button class="panel-head-action-btn panel-head-action-btn-danger" onclick="clearCurrentDocVersions()" title="清空当前文档的所有版本">清空版本</button>
+                <button class="panel-close-btn" onclick="toggleVersionPanel()" title="关闭">&times;</button>
+            </div>
         </div>
     </div>
     <div class="history-list" id="versionList"></div>
@@ -4413,27 +4853,50 @@ async function renderLibraryAsync() {
         list.innerHTML = '<div class="empty-tip">暂无匹配文档</div>';
         return;
     }
-    list.innerHTML = docs.map(doc => `
-        <div class="history-item" onclick="openLibraryFile('${escapeAttr(doc.name)}')">
-            <div class="history-meta">
-                <span style="display:flex;align-items:center;gap:6px;min-width:0;">
-                    <input type="checkbox" ${librarySelectedDocs.has(doc.name) ? 'checked' : ''} onclick="event.stopPropagation(); toggleLibrarySelection('${escapeAttr(doc.name)}', this.checked)">
-                    <span class="history-name" style="max-width: 190px;">${doc.starred ? '⭐ ' : ''}${escapeHTML(doc.name)}</span>
-                </span>
-                <span class="history-time">${escapeHTML(doc.modified || '')}</span>
+    list.innerHTML = docs.map(doc => {
+        const safeName = escapeAttr(doc.name);
+        const sizeKB = ((doc.size || 0) / 1024).toFixed(1);
+        const tagsArr = Array.isArray(doc.tags) ? doc.tags.filter(Boolean) : [];
+        const hasMeta = doc.folder || tagsArr.length > 0;
+        const metaChips = [];
+        if (doc.folder) metaChips.push(`<span class="meta-folder" title="分类">📁 ${escapeHTML(doc.folder)}</span>`);
+        if (tagsArr.length) metaChips.push(...tagsArr.map(t => `<span class="meta-tag" title="标签"># ${escapeHTML(t)}</span>`));
+        return `
+        <div class="history-item" onclick="openLibraryFile('${safeName}')">
+            <div class="library-item-head">
+                <input type="checkbox" class="library-item-check" ${librarySelectedDocs.has(doc.name) ? 'checked' : ''} onclick="event.stopPropagation(); toggleLibrarySelection('${safeName}', this.checked)">
+                <span class="library-item-name" title="${escapeAttr(doc.name)}">${doc.starred ? '⭐ ' : ''}${escapeHTML(doc.name)}</span>
+                <span class="library-item-time">${escapeHTML(doc.modified || '')}</span>
             </div>
-            <div class="history-preview">${((doc.size || 0) / 1024).toFixed(1)} KB${doc.folder ? ' · 分类: ' + escapeHTML(doc.folder) : ''}${Array.isArray(doc.tags) && doc.tags.length ? ' · 标签: ' + escapeHTML(doc.tags.join(', ')) : ''}</div>
-            <div class="history-actions">
-                <button class="btn-restore" onclick="event.stopPropagation(); openLibraryFile('${escapeAttr(doc.name)}')">打开</button>
-                <button class="btn-restore" onclick="event.stopPropagation(); toggleLibraryStar('${escapeAttr(doc.name)}')">${doc.starred ? '取消星标' : '星标'}</button>
-                <button class="btn-restore" onclick="event.stopPropagation(); renameLibraryDoc('${escapeAttr(doc.name)}')">重命名</button>
-                <button class="btn-restore" onclick="event.stopPropagation(); editLibraryTags('${escapeAttr(doc.name)}')">标签</button>
-                <button class="btn-restore" onclick="event.stopPropagation(); editLibraryFolder('${escapeAttr(doc.name)}')">分类</button>
-                <button class="btn-restore" onclick="event.stopPropagation(); duplicateLibraryDoc('${escapeAttr(doc.name)}')">复制</button>
-                <button class="btn-delete" onclick="event.stopPropagation(); deleteLibraryDoc('${escapeAttr(doc.name)}')">删除</button>
+            <div class="library-item-meta">
+                <span>${sizeKB} KB</span>
+                ${hasMeta ? '<span class="meta-dot"></span>' + metaChips.join('') : ''}
+            </div>
+            <div class="library-item-actions" onclick="event.stopPropagation();">
+                <button class="library-act" title="打开" onclick="event.stopPropagation(); openLibraryFile('${safeName}')">
+                    <svg viewBox="0 0 24 24"><path d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1"/><path d="M20.5 16.5a2.12 2.12 0 00-1.64-1H5.14A2.12 2.12 0 003 17.38V18a2 2 0 002 2h14a2 2 0 002-2v-.5z"/></svg>
+                </button>
+                <button class="library-act ${doc.starred ? 'is-starred' : ''}" title="${doc.starred ? '取消星标' : '加星标'}" onclick="event.stopPropagation(); toggleLibraryStar('${safeName}')">
+                    <svg viewBox="0 0 24 24" ${doc.starred ? 'fill="currentColor"' : ''}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </button>
+                <button class="library-act" title="重命名" onclick="event.stopPropagation(); renameLibraryDoc('${safeName}')">
+                    <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </button>
+                <button class="library-act" title="编辑标签" onclick="event.stopPropagation(); editLibraryTags('${safeName}')">
+                    <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                </button>
+                <button class="library-act" title="设置分类" onclick="event.stopPropagation(); editLibraryFolder('${safeName}')">
+                    <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+                </button>
+                <button class="library-act" title="复制副本" onclick="event.stopPropagation(); duplicateLibraryDoc('${safeName}')">
+                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                </button>
+                <button class="library-act library-act-danger" title="删除" onclick="event.stopPropagation(); deleteLibraryDoc('${safeName}')">
+                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>
+                </button>
             </div>
         </div>
-    `).join('');
+    `;}).join('');
 }
 
 function updateLibrarySelectedCount() {
@@ -6263,6 +6726,82 @@ function toggleAICommandWindow() {
 function hideAICommandWindow() {
     _elAICommandWindow.classList.remove('active');
 }
+
+(function setupAICommandWindowDrag() {
+    var win = _elAICommandWindow;
+    if (!win) return;
+    var header = win.querySelector('.ai-command-header');
+    if (!header) return;
+    var dragging = false;
+    var startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+    function clamp(value, min, max) { return Math.max(min, Math.min(value, max)); }
+
+    function startDrag(clientX, clientY, target) {
+        if (target && target.closest && target.closest('.ai-command-header-actions')) return false;
+        var rect = win.getBoundingClientRect();
+        startX = clientX;
+        startY = clientY;
+        startLeft = rect.left;
+        startTop = rect.top;
+        dragging = true;
+        win.style.left = startLeft + 'px';
+        win.style.top = startTop + 'px';
+        win.style.right = 'auto';
+        win.style.bottom = 'auto';
+        header.classList.add('is-dragging');
+        document.body.style.userSelect = 'none';
+        return true;
+    }
+
+    function moveDrag(clientX, clientY) {
+        if (!dragging) return;
+        var dx = clientX - startX;
+        var dy = clientY - startY;
+        var maxX = window.innerWidth - win.offsetWidth;
+        var maxY = window.innerHeight - win.offsetHeight;
+        win.style.left = clamp(startLeft + dx, 0, Math.max(0, maxX)) + 'px';
+        win.style.top = clamp(startTop + dy, 0, Math.max(0, maxY)) + 'px';
+    }
+
+    function endDrag() {
+        if (!dragging) return;
+        dragging = false;
+        header.classList.remove('is-dragging');
+        document.body.style.userSelect = '';
+    }
+
+    header.addEventListener('mousedown', function(e) {
+        if (e.button !== 0) return;
+        if (startDrag(e.clientX, e.clientY, e.target)) e.preventDefault();
+    });
+    document.addEventListener('mousemove', function(e) { moveDrag(e.clientX, e.clientY); });
+    document.addEventListener('mouseup', endDrag);
+
+    header.addEventListener('touchstart', function(e) {
+        if (!e.touches || !e.touches.length) return;
+        var t = e.touches[0];
+        startDrag(t.clientX, t.clientY, e.target);
+    }, { passive: true });
+    document.addEventListener('touchmove', function(e) {
+        if (!dragging || !e.touches || !e.touches.length) return;
+        var t = e.touches[0];
+        moveDrag(t.clientX, t.clientY);
+    }, { passive: true });
+    document.addEventListener('touchend', endDrag);
+    document.addEventListener('touchcancel', endDrag);
+
+    window.addEventListener('resize', function() {
+        if (!win.classList.contains('active')) return;
+        if (win.style.left === '' && win.style.top === '') return;
+        var maxX = window.innerWidth - win.offsetWidth;
+        var maxY = window.innerHeight - win.offsetHeight;
+        var curLeft = parseFloat(win.style.left) || 0;
+        var curTop = parseFloat(win.style.top) || 0;
+        win.style.left = clamp(curLeft, 0, Math.max(0, maxX)) + 'px';
+        win.style.top = clamp(curTop, 0, Math.max(0, maxY)) + 'px';
+    });
+})();
 
 function autoResizeAICommandInput(el) {
     el.style.height = 'auto';
