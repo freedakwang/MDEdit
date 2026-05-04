@@ -16,6 +16,7 @@ MDEdit is a browser-based Markdown editor that works out of the box by simply op
     - [Configure API](#configure-api)
     - [Quick Actions](#quick-actions)
     - [Free Chat](#free-chat)
+    - [Floating Natural Language Commands](#floating-natural-language-commands)
     - [Intelligent Memory System](#intelligent-memory-system)
     - [Result Actions](#result-actions)
   - [Interface Layout](#interface-layout)
@@ -115,6 +116,17 @@ When text is selected in the editor, editor-based quick actions such as polishin
 ### Free Chat
 
 In addition to quick actions, you can type any request directly in the input box. The AI automatically retrieves the current editor content as context and uses the intelligent memory system to retrieve relevant chat history.
+
+### Floating Natural Language Commands
+
+MDEdit provides a floating **Command** button for natural language operations. After AI is configured, you can type requests such as "export PDF", "preview only", "open library", "insert table", or "open SVG editor" instead of selecting toolbar menus manually.
+
+- **Floating UI**: click the floating command button to open a compact command window.
+- **Safe whitelist**: commands are mapped only to built-in, predefined actions; AI cannot execute arbitrary JavaScript.
+- **Confirmation**: file creation, saving, exporting, copying, inserting, and file-picker actions require explicit confirmation.
+- **Local fallback**: common commands are recognized locally first; if not matched, the configured AI is used to classify the intent as JSON.
+
+Supported first-batch actions include saving, saving as, opening files, import/export, PDF export, rich-text/WeChat copy, view switching, panel swapping, dark mode, library, outline, version history, search, current-document find, AI settings, table insertion, SVG file insertion, SVG folding, and opening the SVG editor.
 
 ### Intelligent Memory System
 
@@ -478,6 +490,7 @@ MDEdit 是一款基于浏览器的 Markdown 编辑器，无需安装，打开 HT
     - [配置 API](#配置-api)
     - [快捷操作](#快捷操作)
     - [自由对话](#自由对话)
+    - [悬浮自然语言指令](#悬浮自然语言指令)
     - [智能记忆系统](#智能记忆系统)
     - [结果操作](#结果操作)
   - [界面布局](#界面布局)
@@ -577,6 +590,17 @@ AI 面板顶部提供 10 个一键操作按钮：
 ### 自由对话
 
 除了快捷操作，还可以在输入框中直接描述任意需求。AI 会自动获取编辑器中的当前内容作为上下文，并通过智能记忆系统自动检索相关历史对话。
+
+### 悬浮自然语言指令
+
+MDEdit 提供悬浮 **指令** 按钮，用于通过自然语言操作编辑器。AI 配置完成后，可以输入「导出 PDF」「只看预览」「打开资料库」「插入表格」「打开 SVG 编辑器」等请求，减少手动选择菜单。
+
+- **悬浮 UI**：点击右下角悬浮指令按钮，打开紧凑悬浮窗。
+- **安全白名单**：指令只会映射到内置预定义动作，AI 不能执行任意 JavaScript。
+- **执行确认**：新建、保存、导出、复制、插入、文件选择器等动作会先确认。
+- **本地兜底**：常用指令优先本地识别；未匹配时才调用已配置 AI 返回 JSON 意图。
+
+首批支持动作包括保存、另存为、打开文件、导入导出、PDF 导出、富文本/公众号复制、视图切换、左右切换、深浅色模式、资料库、大纲、版本历史、文库搜索、当前文档查找、AI 设置、插入表格、插入 SVG 文件、折叠 SVG，以及打开 SVG 编辑器。
 
 ### 智能记忆系统
 

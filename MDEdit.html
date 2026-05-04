@@ -1542,6 +1542,221 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
+        .ai-command-float-btn {
+            position: fixed;
+            right: 22px;
+            bottom: 48px;
+            z-index: 9990;
+            width: 58px;
+            height: 58px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #2563eb, #0891b2);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 16px 36px rgba(37, 99, 235, 0.34);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 12px;
+            font-weight: 800;
+            transition: transform 0.18s, box-shadow 0.18s;
+        }
+        .ai-command-float-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 44px rgba(37, 99, 235, 0.42);
+        }
+        .ai-command-float-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .ai-command-window {
+            position: fixed;
+            right: 22px;
+            bottom: 116px;
+            z-index: 9991;
+            display: none;
+            width: min(390px, calc(100vw - 28px));
+            max-height: min(620px, calc(100vh - 150px));
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            background: var(--bg-primary);
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+            overflow: hidden;
+            flex-direction: column;
+        }
+        .ai-command-window.active { display: flex; }
+        .ai-command-header {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .ai-command-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+        .ai-command-title svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; }
+        .ai-command-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ai-command-header-actions button {
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px 8px;
+            font-size: 12px;
+        }
+        .ai-command-header-actions button:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .ai-command-hint {
+            padding: 10px 14px 0;
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+        .ai-command-quick {
+            padding: 10px 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .ai-command-chip {
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .ai-command-chip:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .ai-command-messages {
+            flex: 1;
+            min-height: 150px;
+            overflow-y: auto;
+            padding: 0 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .ai-command-msg {
+            max-width: 94%;
+            padding: 9px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .ai-command-msg-user {
+            align-self: flex-end;
+            background: var(--accent);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .ai-command-msg-assistant {
+            align-self: flex-start;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+        .ai-command-msg-system {
+            align-self: center;
+            max-width: 100%;
+            color: var(--text-secondary);
+            background: transparent;
+            padding: 2px 0;
+            font-size: 12px;
+        }
+        .ai-command-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .ai-command-actions button,
+        .ai-command-actions a {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 6px 10px;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        .ai-command-actions button:hover,
+        .ai-command-actions a:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .ai-command-actions .primary {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #fff;
+        }
+        .ai-command-actions .primary:hover {
+            color: #fff;
+            background: var(--accent-hover);
+        }
+        .ai-command-input-area {
+            border-top: 1px solid var(--border-color);
+            padding: 10px 12px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        .ai-command-input-area textarea {
+            flex: 1;
+            min-height: 38px;
+            max-height: 110px;
+            resize: none;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            outline: none;
+            padding: 8px 10px;
+            font-size: 13px;
+            line-height: 1.5;
+            font-family: inherit;
+        }
+        .ai-command-input-area textarea:focus { border-color: var(--accent); }
+        .ai-command-send-btn {
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 10px;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .ai-command-send-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        .ai-command-send-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
         /* AI 设置弹窗 */
         .ai-settings-modal .modal {
             width: min(900px, 96vw);
@@ -1650,6 +1865,7 @@
             body { height: auto; overflow: visible; background: #fff; }
             .toolbar, .status-bar, .editor-panel, .panel-header,
             .modal-overlay, .drop-overlay, .toast, .history-panel, .ai-panel, .ai-settings-modal, .svg-context-menu,
+            .ai-command-float-btn, .ai-command-window,
             .outline-panel, .search-panel, .doc-find-panel { display: none !important; }
             .main { display: block !important; overflow: visible !important; }
             .main.editor-only .preview-panel,
@@ -1895,6 +2111,39 @@
         <div class="ai-insert-options" title="开启后，使用下方「插入到光标 / 替换 / 追加」时，将 Markdown 中的 SVG 转为 JPG 再写入（矢量可编辑性会丢失）">
             <label><input type="checkbox" id="aiInsertSvgAsJpeg">插入 AI 回复时把 SVG 转为 JPG</label>
         </div>
+    </div>
+</div>
+
+<button class="ai-command-float-btn" id="aiCommandFloatBtn" onclick="toggleAICommandWindow()" title="用自然语言操作编辑器">
+    <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 17v4"/><path d="M17 19h4"/></svg>
+    指令
+</button>
+<div class="ai-command-window" id="aiCommandWindow">
+    <div class="ai-command-header">
+        <div class="ai-command-title">
+            <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2Z"/><path d="M5 3v4"/><path d="M3 5h4"/></svg>
+            自然语言操作
+        </div>
+        <div class="ai-command-header-actions">
+            <button onclick="showAISettings()">设置</button>
+            <button onclick="hideAICommandWindow()">关闭</button>
+        </div>
+    </div>
+    <div class="ai-command-hint">输入“导出 PDF”“只看预览”“打开资料库”“插入表格”等指令。高风险操作会先确认。</div>
+    <div class="ai-command-quick">
+        <button class="ai-command-chip" onclick="sendAICommandQuick('导出 PDF')">导出 PDF</button>
+        <button class="ai-command-chip" onclick="sendAICommandQuick('只看预览')">只看预览</button>
+        <button class="ai-command-chip" onclick="sendAICommandQuick('打开资料库')">打开资料库</button>
+        <button class="ai-command-chip" onclick="sendAICommandQuick('打开 SVG 编辑器')">SVG 编辑器</button>
+    </div>
+    <div class="ai-command-messages" id="aiCommandMessages">
+        <div class="ai-command-msg ai-command-msg-system">我可以用自然语言帮你调用常用菜单功能。</div>
+    </div>
+    <div class="ai-command-input-area">
+        <textarea id="aiCommandInput" rows="1" placeholder="例如：帮我导出 PDF..." oninput="autoResizeAICommandInput(this)"></textarea>
+        <button class="ai-command-send-btn" id="aiCommandSendBtn" onclick="sendAICommand()" title="执行指令">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+        </button>
     </div>
 </div>
 
@@ -5935,6 +6184,266 @@ function toggleAIPanel() {
         _elAiInput.focus();
     }
 }
+
+var _elAICommandWindow = document.getElementById('aiCommandWindow');
+var _elAICommandInput = document.getElementById('aiCommandInput');
+var _elAICommandMessages = document.getElementById('aiCommandMessages');
+var _elAICommandSendBtn = document.getElementById('aiCommandSendBtn');
+var aiCommandBusy = false;
+var aiCommandPending = {};
+
+const AI_COMMAND_ACTIONS = {
+    new_file: { label: '新建文档', confirm: '确定要新建文档吗？未保存内容会先触发原有确认。', execute: function() { return newFile(); } },
+    open_file: { label: '打开文件', confirm: '将打开文件选择器，请选择要打开的 Markdown 文件。', execute: function() { openFile(); } },
+    show_import: { label: '打开导入窗口', execute: function() { showImportModal(); } },
+    set_image_dir: { label: '选择图片目录', confirm: '将打开目录选择器，用于设置 Markdown 图片目录。', execute: function() { setImageBasePath(); } },
+    save_file: { label: '保存当前文档', confirm: '确定保存当前文档吗？', execute: function() { return saveFile(); } },
+    save_as_file: { label: '另存为 Markdown', confirm: '确定将当前文档另存为 Markdown 文件吗？', execute: function() { return saveAsFile(); } },
+    show_export: { label: '打开导出窗口', execute: function() { showExportModal(); } },
+    export_html: { label: '导出 HTML', confirm: '确定导出当前文档为 HTML 吗？', execute: function() { return exportHTML(); } },
+    export_doc: { label: '导出 DOC', confirm: '确定导出当前文档为 DOC 吗？', execute: function() { return exportDoc(); } },
+    export_pdf: { label: '导出 PDF', confirm: '确定打开 PDF 打印页吗？请在打印对话框中选择另存为 PDF。', execute: function() { return exportPDF(); } },
+    copy_html: { label: '复制富文本', confirm: '确定复制当前预览的富文本内容吗？', execute: function() { return copyHTML(); } },
+    copy_wechat: { label: '复制公众号排版', confirm: '确定复制公众号友好排版吗？', execute: function() { return copyForWechat(); } },
+    view_both: { label: '切换到双栏视图', execute: function() { setView('both'); } },
+    view_editor: { label: '只显示编辑器', execute: function() { setView('editor-only'); } },
+    view_preview: { label: '只显示预览', execute: function() { setView('preview-only'); } },
+    swap_panels: { label: '左右切换', execute: function() { swapPanels(); } },
+    toggle_dark: { label: '切换深浅色模式', execute: function() { toggleDarkMode(); } },
+    open_library: { label: '打开资料库', execute: function() { return toggleLibrary(); } },
+    open_outline: { label: '打开大纲', execute: function() { toggleOutline(); } },
+    open_versions: { label: '打开版本历史', execute: function() { return toggleVersionPanel(); } },
+    open_search: { label: '打开文库搜索', execute: function() { toggleSearch(); } },
+    open_find: { label: '打开当前文档查找', execute: function() { toggleDocFind(); } },
+    open_ai_panel: { label: '打开 AI 面板', execute: function() { if (!_elAiPanel.classList.contains('active')) toggleAIPanel(); } },
+    open_ai_settings: { label: '打开 AI 设置', execute: function() { showAISettings(); } },
+    insert_table: { label: '插入表格', confirm: '确定在当前光标处插入 Markdown 表格吗？', execute: function() { insertFormat('table'); } },
+    insert_svg_file: { label: '插入 SVG 文件', confirm: '将打开 SVG 文件选择器，并插入到当前光标处。', execute: function() { triggerInsertSvgFile(); } },
+    toggle_svg_fold: { label: '折叠/展开 SVG 和图片', execute: function() { toggleSvgFold(); } },
+    open_svg_editor: { label: '打开 SVG 编辑器', href: 'https://svgedit.all8ai.top/' }
+};
+
+function toggleAICommandWindow() {
+    _elAICommandWindow.classList.toggle('active');
+    if (_elAICommandWindow.classList.contains('active')) {
+        setTimeout(function() { _elAICommandInput.focus(); }, 50);
+    }
+}
+
+function hideAICommandWindow() {
+    _elAICommandWindow.classList.remove('active');
+}
+
+function autoResizeAICommandInput(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+}
+
+function addAICommandMsg(role, text) {
+    const div = document.createElement('div');
+    div.className = 'ai-command-msg ai-command-msg-' + role;
+    div.textContent = text;
+    _elAICommandMessages.appendChild(div);
+    _elAICommandMessages.scrollTop = _elAICommandMessages.scrollHeight;
+    return div;
+}
+
+function setAICommandBusy(busy) {
+    aiCommandBusy = busy;
+    _elAICommandSendBtn.disabled = busy;
+    _elAICommandSendBtn.innerHTML = busy
+        ? '<svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>'
+        : '<svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>';
+}
+
+function normalizeAICommandText(text) {
+    return (text || '').toLowerCase().replace(/\s+/g, '');
+}
+
+function parseLocalAICommand(text) {
+    const t = normalizeAICommandText(text);
+    if (!t) return null;
+    const has = function() {
+        return Array.prototype.some.call(arguments, function(k) { return t.indexOf(k) >= 0; });
+    };
+    if (has('svg编辑器', 'svgeditor', 'svgedit', '处理svg')) return { type: 'command', action: 'open_svg_editor', reply: '打开 SVG 编辑器。' };
+    if (has('导出pdf', 'pdf导出', '另存为pdf', '保存pdf')) return { type: 'command', action: 'export_pdf', reply: '导出当前文档为 PDF。' };
+    if (has('导出html', 'html导出')) return { type: 'command', action: 'export_html', reply: '导出当前文档为 HTML。' };
+    if (has('导出doc', '导出word', 'word导出')) return { type: 'command', action: 'export_doc', reply: '导出当前文档为 DOC。' };
+    if (has('导出菜单', '导出窗口', '打开导出')) return { type: 'command', action: 'show_export', reply: '打开导出窗口。' };
+    if (has('复制公众号', '公众号排版')) return { type: 'command', action: 'copy_wechat', reply: '复制公众号排版。' };
+    if (has('复制富文本', '复制html')) return { type: 'command', action: 'copy_html', reply: '复制富文本内容。' };
+    if (has('另存为', '另存markdown', '另存md')) return { type: 'command', action: 'save_as_file', reply: '另存当前文档。' };
+    if (has('保存当前', '保存文档', '保存文件')) return { type: 'command', action: 'save_file', reply: '保存当前文档。' };
+    if (has('新建', '新文档')) return { type: 'command', action: 'new_file', reply: '新建文档。' };
+    if (has('打开文件', '选择文件')) return { type: 'command', action: 'open_file', reply: '打开文件。' };
+    if (has('导入文件', '导入pdf', '导入word', '导入excel', '导入ppt')) return { type: 'command', action: 'show_import', reply: '打开导入窗口。' };
+    if (has('图片目录', '图片路径')) return { type: 'command', action: 'set_image_dir', reply: '选择图片目录。' };
+    if (has('只看预览', '预览模式', '切到预览', '显示预览')) return { type: 'command', action: 'view_preview', reply: '切换到预览模式。' };
+    if (has('只看编辑', '编辑模式', '切到编辑', '显示编辑器')) return { type: 'command', action: 'view_editor', reply: '切换到编辑器模式。' };
+    if (has('双栏', '双列', '两栏')) return { type: 'command', action: 'view_both', reply: '切换到双栏模式。' };
+    if (has('左右切换', '交换左右', '切换左右')) return { type: 'command', action: 'swap_panels', reply: '切换编辑器和预览位置。' };
+    if (has('暗色', '深色', '亮色', '主题')) return { type: 'command', action: 'toggle_dark', reply: '切换深浅色模式。' };
+    if (has('资料库', '文档库')) return { type: 'command', action: 'open_library', reply: '打开资料库。' };
+    if (has('大纲')) return { type: 'command', action: 'open_outline', reply: '打开大纲。' };
+    if (has('版本', '历史')) return { type: 'command', action: 'open_versions', reply: '打开版本历史。' };
+    if (has('文库搜索', '资料搜索', '搜索资料')) return { type: 'command', action: 'open_search', reply: '打开文库搜索。' };
+    if (has('查找', '替换')) return { type: 'command', action: 'open_find', reply: '打开当前文档查找。' };
+    if (has('ai设置', '模型设置', '配置ai')) return { type: 'command', action: 'open_ai_settings', reply: '打开 AI 设置。' };
+    if (has('ai面板', '聊天面板')) return { type: 'command', action: 'open_ai_panel', reply: '打开 AI 面板。' };
+    if (has('插入表格', '加表格')) return { type: 'command', action: 'insert_table', reply: '插入 Markdown 表格。' };
+    if (has('插入svg', '选择svg')) return { type: 'command', action: 'insert_svg_file', reply: '插入 SVG 文件。' };
+    if (has('折叠svg', '展开svg', '折叠图片', '展开图片')) return { type: 'command', action: 'toggle_svg_fold', reply: '折叠或展开 SVG 和图片。' };
+    return null;
+}
+
+function parseAICommandJSON(content) {
+    if (!content) return null;
+    let text = content.trim();
+    text = text.replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start >= 0 && end > start) text = text.slice(start, end + 1);
+    try { return JSON.parse(text); } catch(e) { return null; }
+}
+
+async function callAICommandRecognizer(text) {
+    const s = getAISettings();
+    if (!s.apiKey || !s.endpoint) return null;
+    let fetchUrl = s.endpoint;
+    if (s.corsProxy) fetchUrl = s.corsProxy + encodeURIComponent(s.endpoint);
+    const actions = Object.keys(AI_COMMAND_ACTIONS).join(', ');
+    const resp = await fetch(fetchUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + s.apiKey
+        },
+        body: JSON.stringify({
+            model: s.model || 'claude-opus-4-6',
+            messages: [
+                {
+                    role: 'system',
+                    content: '你是 MDEdit 的自然语言操作识别器。只能从白名单 action 中选择：' + actions + '。如果用户想操作编辑器或菜单，返回 JSON：{"type":"command","action":"某个action","reply":"简短中文说明"}。如果不是操作指令，返回 JSON：{"type":"none","reply":"无法识别为可执行操作"}。禁止输出 JSON 以外的内容。'
+                },
+                { role: 'user', content: text }
+            ],
+            max_tokens: 256,
+            temperature: 0,
+            stream: false
+        })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    return parseAICommandJSON(data?.choices?.[0]?.message?.content || '');
+}
+
+async function recognizeAICommand(text) {
+    const local = parseLocalAICommand(text);
+    if (local) return local;
+    const s = getAISettings();
+    if (!s.apiKey || !s.endpoint) {
+        return { type: 'none', reply: '没有识别到内置指令。请先配置 AI 后再输入更自由的自然语言操作。' };
+    }
+    try {
+        const aiResult = await callAICommandRecognizer(text);
+        if (aiResult && aiResult.type === 'command' && AI_COMMAND_ACTIONS[aiResult.action]) {
+            return aiResult;
+        }
+        return aiResult || { type: 'none', reply: '没有识别到可执行操作。' };
+    } catch(e) {
+        return { type: 'none', reply: 'AI 指令识别失败：' + (e && e.message ? e.message : '未知错误') };
+    }
+}
+
+function renderAICommandResult(command) {
+    if (!command || command.type !== 'command' || !AI_COMMAND_ACTIONS[command.action]) {
+        addAICommandMsg('assistant', (command && command.reply) || '没有识别到可执行操作。');
+        return;
+    }
+    const config = AI_COMMAND_ACTIONS[command.action];
+    const message = '识别到操作：' + config.label + (command.reply ? '\n' + command.reply : '');
+    if (config.href) {
+        const div = addAICommandMsg('assistant', message);
+        const actions = document.createElement('div');
+        actions.className = 'ai-command-actions';
+        actions.innerHTML = '<a class="primary" href="' + config.href + '" target="_blank" rel="noopener noreferrer">打开</a>';
+        div.appendChild(actions);
+        return;
+    }
+    if (config.confirm) {
+        const id = 'cmd_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2);
+        aiCommandPending[id] = command;
+        const div = addAICommandMsg('assistant', message + '\n' + config.confirm);
+        const actions = document.createElement('div');
+        actions.className = 'ai-command-actions';
+        actions.innerHTML = '<button class="primary" onclick="executeAICommandById(\'' + id + '\')">执行</button><button onclick="cancelAICommandById(\'' + id + '\')">取消</button>';
+        div.appendChild(actions);
+        return;
+    }
+    executeAICommand(command, message);
+}
+
+async function executeAICommand(command, successPrefix) {
+    const config = AI_COMMAND_ACTIONS[command.action];
+    if (!config || config.href) return;
+    try {
+        await config.execute(command.params || {});
+        addAICommandMsg('assistant', (successPrefix || ('已执行：' + config.label)));
+        showToast('已执行：' + config.label);
+    } catch(e) {
+        addAICommandMsg('assistant', '执行失败：' + (e && e.message ? e.message : '未知错误'));
+    }
+}
+
+function executeAICommandById(id) {
+    const command = aiCommandPending[id];
+    if (!command) return;
+    delete aiCommandPending[id];
+    executeAICommand(command);
+}
+
+function cancelAICommandById(id) {
+    delete aiCommandPending[id];
+    addAICommandMsg('system', '已取消操作');
+}
+
+async function runAICommandText(text) {
+    const value = (text || '').trim();
+    if (!value || aiCommandBusy) return;
+    addAICommandMsg('user', value);
+    setAICommandBusy(true);
+    try {
+        const command = await recognizeAICommand(value);
+        renderAICommandResult(command);
+    } finally {
+        setAICommandBusy(false);
+    }
+}
+
+function sendAICommand() {
+    const text = _elAICommandInput.value.trim();
+    if (!text) return;
+    _elAICommandInput.value = '';
+    autoResizeAICommandInput(_elAICommandInput);
+    runAICommandText(text);
+}
+
+function sendAICommandQuick(text) {
+    if (!_elAICommandWindow.classList.contains('active')) _elAICommandWindow.classList.add('active');
+    runAICommandText(text);
+}
+
+_elAICommandInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendAICommand();
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') hideAICommandWindow();
+});
 
 function newAIChat() {
     aiChatHistory = [];
