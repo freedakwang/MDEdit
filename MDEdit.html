@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://fonts.loli.net/css2?family=Righteous&display=swap">
     <link rel="stylesheet" id="hljs-light" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
     <link rel="stylesheet" id="hljs-dark" href="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" disabled>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.css">
     <style>
         :root {
             --bg-primary: #ffffff;
@@ -157,6 +158,70 @@
             background: linear-gradient(180deg, transparent, rgba(59,130,246,0.2), transparent);
             margin: 0 6px;
             flex-shrink: 0;
+        }
+
+        .toolbar-group {
+            position: relative;
+            flex-shrink: 0;
+        }
+        .toolbar-dropdown-trigger {
+            border: 1px solid rgba(59,130,246,0.10) !important;
+            background: rgba(255,255,255,0.36) !important;
+            font-weight: 700;
+        }
+        .toolbar-group-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            margin-right: 2px;
+            border-radius: 8px;
+            background: rgba(37,99,235,0.10);
+            color: #2563eb;
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .toolbar-group-out .toolbar-group-label { background: rgba(5,150,105,0.10); color: #059669; }
+        .toolbar-group-manage .toolbar-group-label { background: rgba(124,58,237,0.10); color: #7c3aed; }
+        .toolbar-dropdown-caret {
+            width: 12px !important;
+            height: 12px !important;
+            margin-left: 2px;
+            transition: transform 0.15s;
+        }
+        .toolbar-group.open .toolbar-dropdown-caret { transform: rotate(180deg); }
+        .toolbar-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            min-width: 172px;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-primary);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+        }
+        .toolbar-group.open .toolbar-dropdown-menu { display: flex; }
+        .toolbar-dropdown-menu button {
+            width: 100%;
+            justify-content: flex-start;
+            color: var(--text-secondary);
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+        .toolbar-dropdown-menu button::before { display: none; }
+        .toolbar-dropdown-menu button:hover:not(:disabled) {
+            background: var(--bg-secondary);
+            transform: none;
+            text-shadow: none;
+        }
+        .toolbar-dropdown-menu #basePathHint {
+            margin: 4px 8px 2px;
+            max-width: 148px;
         }
 
         .toolbar button {
@@ -460,11 +525,36 @@
         }
         #preview pre code {
             display: block;
-            padding: 16px 20px;
             background: transparent;
+            padding: 0;
             color: #e2e8f0;
-            font-size: 13px;
             line-height: 1.6;
+        }
+
+        #preview .mermaid {
+            margin: 16px 0;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            text-align: center;
+            overflow-x: auto;
+        }
+        #preview .mermaid-error {
+            text-align: left;
+            color: #ef4444;
+        }
+        #preview .math-block {
+            display: block;
+            overflow-x: auto;
+            margin: 14px 0;
+            text-align: center;
+        }
+        #preview .math-inline {
+            display: inline-block;
+            max-width: 100%;
+            overflow-x: auto;
+            vertical-align: middle;
         }
 
         #preview table {
@@ -705,6 +795,11 @@
             line-height: 1;
         }
         .outline-panel .outline-header button:hover { background: var(--bg-secondary); color: var(--text-primary); }
+        .outline-panel .outline-header .outline-action-btn {
+            font-size: 12px;
+            padding: 3px 7px;
+            border: 1px solid var(--border-color);
+        }
         .outline-list {
             flex: 1;
             overflow-y: auto;
@@ -732,6 +827,84 @@
         .outline-item.level-3 { padding-left: 32px; font-size: 12px; color: var(--text-secondary); }
         .outline-item.level-4 { padding-left: 44px; font-size: 12px; color: var(--text-secondary); }
         .outline-item.level-5, .outline-item.level-6 { padding-left: 56px; font-size: 11px; color: var(--text-secondary); }
+
+        /* ========== 当前文档查找替换 ========== */
+        .doc-find-panel {
+            display: none;
+            position: fixed;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 460px;
+            max-width: calc(100vw - 24px);
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 16px 50px rgba(0,0,0,0.18);
+            z-index: 90;
+            padding: 12px;
+            gap: 8px;
+            flex-direction: column;
+        }
+        .doc-find-panel.active { display: flex; }
+        .doc-find-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .doc-find-header button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 18px;
+            padding: 0 6px;
+            border-radius: 4px;
+        }
+        .doc-find-header button:hover { background: var(--bg-secondary); color: var(--text-primary); }
+        .doc-find-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .doc-find-row input[type="text"] {
+            flex: 1;
+            padding: 7px 9px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            outline: none;
+            font-size: 13px;
+        }
+        .doc-find-row input[type="text"]:focus { border-color: var(--accent); }
+        .doc-find-row button {
+            padding: 7px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .doc-find-row button:hover { border-color: var(--accent); color: var(--accent); }
+        .doc-find-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .doc-find-options label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
 
         /* ========== 自定义对话框 ========== */
         .dialog-overlay {
@@ -1249,6 +1422,27 @@
             border-radius: 3px;
         }
         .ai-msg-ai pre code { background: transparent; padding: 0; }
+        .ai-thinking-block {
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+            background: var(--bg-primary);
+        }
+        .ai-thinking-block summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .ai-thinking-block pre {
+            background: transparent !important;
+            color: var(--text-secondary) !important;
+            padding: 6px 0 0 !important;
+            margin: 0 !important;
+            white-space: pre-wrap;
+            border-radius: 0 !important;
+        }
         .ai-msg-system {
             align-self: center;
             background: transparent;
@@ -1342,7 +1536,18 @@
 
         /* AI 设置弹窗 */
         .ai-settings-modal .modal {
-            width: 480px;
+            width: min(900px, 96vw);
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+        .ai-settings-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px 16px;
+            align-items: start;
+        }
+        .ai-setting-field {
+            min-width: 0;
         }
         .ai-settings-form label {
             display: block;
@@ -1350,9 +1555,9 @@
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 4px;
-            margin-top: 14px;
+            margin-top: 0;
         }
-        .ai-settings-form label:first-child { margin-top: 0; }
+        .ai-setting-field-full { grid-column: 1 / -1; }
         .ai-settings-form input,
         .ai-settings-form select {
             width: 100%;
@@ -1367,6 +1572,17 @@
         }
         .ai-settings-form input:focus,
         .ai-settings-form select:focus { border-color: var(--accent); }
+        .ai-settings-form .ai-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .ai-settings-form .ai-checkbox-label input {
+            width: auto;
+            margin: 0;
+        }
         .ai-settings-form .hint {
             font-size: 11px;
             color: var(--text-secondary);
@@ -1389,12 +1605,44 @@
             transition: background 0.15s, color 0.15s;
         }
 
+        .svg-context-menu {
+            position: fixed;
+            display: none;
+            z-index: 10000;
+            min-width: 168px;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+        }
+        .svg-context-menu.active { display: block; }
+        .svg-context-menu button {
+            display: block;
+            width: 100%;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-primary);
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .svg-context-menu button:hover { background: var(--bg-secondary); color: var(--accent); }
+
+        @media (max-width: 760px) {
+            .ai-settings-modal .modal { width: 95vw; max-height: 90vh; }
+            .ai-settings-form { grid-template-columns: 1fr; }
+            .ai-setting-field-full { grid-column: auto; }
+        }
+
         /* ========== 打印/PDF 导出样式 ========== */
         @media print {
             body { height: auto; overflow: visible; background: #fff; }
             .toolbar, .status-bar, .editor-panel, .panel-header,
-            .modal-overlay, .drop-overlay, .toast, .history-panel, .ai-panel, .ai-settings-modal,
-            .outline-panel, .search-panel { display: none !important; }
+            .modal-overlay, .drop-overlay, .toast, .history-panel, .ai-panel, .ai-settings-modal, .svg-context-menu,
+            .outline-panel, .search-panel, .doc-find-panel { display: none !important; }
             .main { display: block !important; overflow: visible !important; }
             .main.editor-only .preview-panel,
             .main.preview-only .preview-panel { display: block !important; }
@@ -1429,60 +1677,107 @@
     <span class="brand"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><defs><linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2563eb"/><stop offset="50%" stop-color="#0891b2"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient></defs><path d="M12 20h9" stroke="url(#brandGrad)"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" stroke="url(#brandGrad)"/></svg>MD Editor</span>
     <div class="divider"></div>
 
-    <button onclick="newFile()" title="新建文档">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-        新建
-    </button>
+    <div class="toolbar-group toolbar-group-in">
+        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownIn')" title="输入：新建、打开、导入和图片目录" aria-haspopup="true" aria-expanded="false">
+            输入
+            <svg class="toolbar-dropdown-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="toolbar-dropdown-menu" id="toolbarDropdownIn">
+            <button onclick="newFile()" title="新建文档">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                新建
+            </button>
 
-    <button onclick="openFile()" title="打开文件">
-        <svg viewBox="0 0 24 24"><path d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1"/><path d="M20.5 16.5a2.12 2.12 0 00-1.64-1H5.14A2.12 2.12 0 003 17.38V18a2 2 0 002 2h14a2 2 0 002-2v-.5z"/></svg>
-        打开
-    </button>
+            <button onclick="openFile()" title="打开文件">
+                <svg viewBox="0 0 24 24"><path d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1"/><path d="M20.5 16.5a2.12 2.12 0 00-1.64-1H5.14A2.12 2.12 0 003 17.38V18a2 2 0 002 2h14a2 2 0 002-2v-.5z"/></svg>
+                打开
+            </button>
 
-    <button onclick="showImportModal()" title="导入 PDF/Word/Excel/PPT 转为 Markdown">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        导入
-    </button>
+            <button onclick="showImportModal()" title="导入 PDF/Word/Excel/PPT 转为 Markdown">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                导入
+            </button>
 
-    <button onclick="saveFile()" title="保存为 .md 文件 (⌘/Ctrl+S)">
-        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
-        保存
-    </button>
-    <button onclick="saveAsFile()" title="另存为新 .md 文件">
-        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><path d="M7 3h8v5H7z"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
-        另存为
-    </button>
+            <button onclick="setImageBasePath()" title="选择图片所在目录（用于正确显示 MD 文档中的图片）">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+                图片目录
+            </button>
+            <span id="basePathHint" style="font-size:10px;color:#64748b;margin-left:2px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:none;" title=""></span>
+        </div>
+    </div>
 
     <div class="divider"></div>
 
-    <button id="btnExport" onclick="showExportModal()" title="导出为其他格式" disabled>
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        导出
-    </button>
+    <div class="toolbar-group toolbar-group-out">
+        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownOut')" title="输出：保存、另存为和导出" aria-haspopup="true" aria-expanded="false">
+            输出
+            <svg class="toolbar-dropdown-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="toolbar-dropdown-menu" id="toolbarDropdownOut">
+            <button onclick="saveFile()" title="保存为 .md 文件 (⌘/Ctrl+S)">
+                <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+                保存
+            </button>
+            <button onclick="saveAsFile()" title="另存为新 .md 文件">
+                <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><path d="M7 3h8v5H7z"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
+                另存为
+            </button>
 
-    <button onclick="toggleSearch()" title="搜索文档库 (⌘/Ctrl+F)">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        搜索
-    </button>
+            <button id="btnExport" onclick="showExportModal()" title="导出为其他格式" disabled>
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                导出
+            </button>
+        </div>
+    </div>
 
-    <button onclick="toggleLibrary()" title="数据库文档集管理">
-        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-        资料库
-    </button>
+    <div class="divider"></div>
 
-    <button onclick="toggleOutline()" title="文档大纲">
-        <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="10" y2="6"/><line x1="3" y1="12" x2="14" y2="12"/><line x1="3" y1="18" x2="10" y2="18"/><polyline points="17,10 21,6 17,2"/></svg>
-        大纲
-    </button>
+    <div class="toolbar-group toolbar-group-manage">
+        <button type="button" class="toolbar-dropdown-trigger" onclick="toggleToolbarDropdown(event, 'toolbarDropdownManage')" title="管理：查找、文库、资料库、版本、大纲和 AI" aria-haspopup="true" aria-expanded="false">
+            管理
+            <svg class="toolbar-dropdown-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="toolbar-dropdown-menu" id="toolbarDropdownManage">
+            <button onclick="toggleDocFind()" title="当前文档查找/替换 (⌘/Ctrl+F)">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6"/></svg>
+                查找
+            </button>
+
+            <button onclick="toggleSearch()" title="搜索文档库 (⌘/Ctrl+Shift+F)">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                文库搜索
+            </button>
+
+            <button onclick="toggleLibrary()" title="数据库文档集管理">
+                <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                资料库
+            </button>
+
+            <button onclick="toggleVersionPanel()" title="当前文档版本历史">
+                <svg viewBox="0 0 24 24"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 6.3L3 8"/><path d="M12 7v5l3 2"/></svg>
+                版本
+            </button>
+
+            <button onclick="toggleOutline()" title="文档大纲">
+                <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="10" y2="6"/><line x1="3" y1="12" x2="14" y2="12"/><line x1="3" y1="18" x2="10" y2="18"/><polyline points="17,10 21,6 17,2"/></svg>
+                大纲
+            </button>
+
+            <button onclick="toggleAIPanel()" title="AI 助手 - 用 AI 创建和修改文档" id="btnAI">
+                <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v1a3 3 0 0 1-1.1 2.3"/><path d="M6 7h1V6a4 4 0 0 1 8 0"/><path d="M5 10a3 3 0 0 0-3 3v1a3 3 0 0 0 3 3"/><path d="M9 22v-4"/><path d="M15 22v-4"/><circle cx="12" cy="15" r="3"/><path d="M19 14a3 3 0 0 0 0-3"/><path d="M5 14a3 3 0 0 1 0-3"/></svg>
+                AI
+            </button>
+
+            <button onclick="showGroupModal()" title="加入技术支持群">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                支持群
+            </button>
+        </div>
+    </div>
 
     <div class="spacer"></div>
 
     <span class="file-name" id="fileName">未打开文件</span>
-    <button onclick="setImageBasePath()" title="选择图片所在目录（用于正确显示 MD 文档中的图片）">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
-        图片目录
-    </button>
-    <span id="basePathHint" style="font-size:10px;color:#64748b;margin-left:2px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:none;" title=""></span>
 
     <div class="divider"></div>
 
@@ -1501,15 +1796,6 @@
         <svg viewBox="0 0 24 24" id="darkModeIcon"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
     </button>
 
-    <button onclick="toggleAIPanel()" title="AI 助手 - 用 AI 创建和修改文档" id="btnAI">
-        <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v1a3 3 0 0 1-1.1 2.3"/><path d="M6 7h1V6a4 4 0 0 1 8 0"/><path d="M5 10a3 3 0 0 0-3 3v1a3 3 0 0 0 3 3"/><path d="M9 22v-4"/><path d="M15 22v-4"/><circle cx="12" cy="15" r="3"/><path d="M19 14a3 3 0 0 0 0-3"/><path d="M5 14a3 3 0 0 1 0-3"/></svg>
-        AI
-    </button>
-
-    <button onclick="showGroupModal()" title="加入技术支持群">
-        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        支持群
-    </button>
 </div>
 
 <!-- 主体 -->
@@ -1535,6 +1821,7 @@
             <button onclick="insertFormat('codeblock')" title="代码块">{ }</button>
             <button onclick="insertFormat('link')" title="链接"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
             <button onclick="insertFormat('image')" title="图片"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></button>
+            <button onclick="triggerInsertSvgFile()" title="插入 SVG 文件到光标处">SVG</button>
             <button onclick="insertFormat('ul')" title="无序列表"><svg viewBox="0 0 24 24"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></button>
             <button onclick="insertFormat('ol')" title="有序列表"><svg viewBox="0 0 24 24"><line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></button>
             <button onclick="insertFormat('quote')" title="引用"><svg viewBox="0 0 24 24"><path d="M17 6H3"/><path d="M21 12H8"/><path d="M21 18H8"/><path d="M3 12v6"/></svg></button>
@@ -1619,11 +1906,11 @@
                     <span>WPS 可直接打开，保留完整排版和样式</span>
                 </div>
             </div>
-            <div class="export-btn" onclick="exportDocx()">
+            <div class="export-btn" onclick="exportDoc()">
                 <span class="export-icon"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
                 <div class="export-info">
-                    <h4>导出为 DOCX</h4>
-                    <span>Word 格式，WPS 原生支持编辑</span>
+                    <h4>导出为 DOC</h4>
+                    <span>Word 兼容格式，WPS / Office 可打开编辑</span>
                 </div>
             </div>
             <div class="export-btn" onclick="exportPDF()">
@@ -1673,7 +1960,7 @@
                 <span class="import-icon"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
                 <div class="import-info">
                     <h4>导入 Word (.docx)</h4>
-                    <span>将 Word 文档转为 Markdown，保留标题、列表等结构</span>
+                    <span>仅支持 .docx，旧版 .doc 请先另存为 .docx</span>
                 </div>
             </div>
             <div class="import-btn" onclick="triggerImport('excel')">
@@ -1701,6 +1988,7 @@
 
 <!-- 隐藏的导入文件输入 -->
 <input type="file" id="importFileInput" style="display:none">
+<input type="file" id="libraryBackupInput" accept=".json,application/json" style="display:none">
 
 <!-- 自定义对话框 -->
 <div class="dialog-overlay" id="dialogOverlay">
@@ -1724,7 +2012,11 @@
 <div class="outline-panel" id="outlinePanel">
     <div class="outline-header">
         <span>文档大纲</span>
-        <button onclick="toggleOutline()" title="关闭">&times;</button>
+        <div style="display:flex;gap:6px;align-items:center;">
+            <button class="outline-action-btn" onclick="copyOutlineMarkdown()" title="复制当前文档目录">复制</button>
+            <button class="outline-action-btn" onclick="insertOutlineMarkdown()" title="插入目录到光标位置">插入</button>
+            <button onclick="toggleOutline()" title="关闭">&times;</button>
+        </div>
     </div>
     <div class="outline-list" id="outlineList">
         <div class="empty-tip">无标题</div>
@@ -1759,8 +2051,57 @@
                 <option value="nameDesc">文件名 (Z-A)</option>
             </select>
         </div>
+        <div style="display:flex; gap:6px; margin-top:8px; align-items:center;">
+            <input id="libraryFilterInput" type="text" placeholder="筛选文件名/标签/分类" oninput="renderLibraryAsync()" style="flex:1;padding:5px 7px;font-size:12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);outline:none;">
+            <label style="display:flex;align-items:center;gap:3px;font-size:12px;color:var(--text-secondary);white-space:nowrap;"><input id="libraryStarFilter" type="checkbox" onchange="renderLibraryAsync()">星标</label>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:8px; align-items:center;">
+            <button onclick="toggleSelectVisibleLibraryDocs()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);cursor:pointer;">全选当前</button>
+            <button onclick="batchExportLibraryDocs()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);cursor:pointer;">批量导出</button>
+            <button onclick="batchDeleteLibraryDocs()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid #ef4444;border-radius:4px;background:transparent;color:#ef4444;cursor:pointer;">批量删除</button>
+            <span id="librarySelectedCount" style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">已选 0</span>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:8px;">
+            <button onclick="exportLibraryBackup()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);cursor:pointer;">导出备份</button>
+            <button onclick="triggerLibraryBackupImport()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-primary);color:var(--text-primary);cursor:pointer;">导入备份</button>
+            <button onclick="clearLibraryDocs()" style="flex:1;padding:5px 8px;font-size:12px;border:1px solid #ef4444;border-radius:4px;background:transparent;color:#ef4444;cursor:pointer;">清空</button>
+        </div>
     </div>
     <div class="history-list" id="libraryList"></div>
+</div>
+
+<!-- 版本历史面板 -->
+<div class="history-panel" id="versionPanel" style="z-index: 32;">
+    <div class="history-header">
+        <span>版本历史</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <button onclick="clearCurrentDocVersions()">清空版本</button>
+            <button onclick="toggleVersionPanel()" title="关闭" style="font-size:18px;padding:2px 8px;">&times;</button>
+        </div>
+    </div>
+    <div class="history-list" id="versionList"></div>
+</div>
+
+<!-- 当前文档查找替换面板 -->
+<div class="doc-find-panel" id="docFindPanel">
+    <div class="doc-find-header">
+        <span>当前文档查找/替换</span>
+        <button onclick="hideDocFind()" title="关闭">&times;</button>
+    </div>
+    <div class="doc-find-row">
+        <input type="text" id="docFindInput" placeholder="查找内容..." oninput="updateDocFindMatches(false)">
+        <button onclick="findPrevInDoc()">上一个</button>
+        <button onclick="findNextInDoc()">下一个</button>
+    </div>
+    <div class="doc-find-row">
+        <input type="text" id="docReplaceInput" placeholder="替换为...">
+        <button onclick="replaceCurrentInDoc()">替换</button>
+        <button onclick="replaceAllInDoc()">全部替换</button>
+    </div>
+    <div class="doc-find-options">
+        <label><input type="checkbox" id="docFindCase" onchange="updateDocFindMatches(false)">区分大小写</label>
+        <span id="docFindCount">0/0</span>
+    </div>
 </div>
 
 <!-- 搜索面板 -->
@@ -1783,48 +2124,81 @@
     <div class="modal">
         <h3>AI 助手设置</h3>
         <p>配置 OpenAI 兼容的 API 参数。支持 OpenAI、DeepSeek、通义千问、Moonshot 等。</p>
+        <p style="font-size:12px;color:var(--text-secondary);line-height:1.6;margin-top:-4px;">隐私提示：API Key 仅保存在浏览器本地。使用 AI 时，当前请求内容、相关上下文以及选中的 Markdown 片段会发送到你配置的 API 地址。</p>
         <div class="ai-settings-form">
-            <label for="aiApiEndpoint">API 地址 (Endpoint)</label>
-            <input type="text" id="aiApiEndpoint" placeholder="https://api.openai.com/v1/chat/completions">
-            <div class="hint">示例：https://api.openai.com/v1/chat/completions<br>DeepSeek: https://api.deepseek.com/v1/chat/completions<br>通义千问: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions<br>自定义: https://your-domain/v1/chat/completions</div>
-
-            <label for="aiApiKey">API Key</label>
-            <input type="password" id="aiApiKey" placeholder="sk-xxxxxxxxxxxxxxxx">
-            <div class="hint">你的 API 密钥，仅保存在浏览器本地，不会上传到任何服务器</div>
-
-            <label for="aiModel">模型名称</label>
-            <input type="text" id="aiModel" placeholder="gpt-4o-mini" list="aiModelList">
-            <datalist id="aiModelList">
-                <option value="claude-opus-4-6">
-                <option value="claude-opus-4-6-thinking">
-                <option value="gpt-4o-mini">
-                <option value="gpt-4o">
-                <option value="gpt-3.5-turbo">
-                <option value="deepseek-chat">
-                <option value="deepseek-reasoner">
-                <option value="qwen-plus">
-                <option value="qwen-turbo">
-                <option value="moonshot-v1-8k">
-            </datalist>
-            <div class="hint">输入模型名称或从下拉列表中选择</div>
-
-            <label for="aiMaxTokens">最大输出长度 (max_tokens)</label>
-            <input type="number" id="aiMaxTokens" placeholder="4096" min="256" max="128000" value="4096">
-            <div class="hint">AI 单次回复的最大 token 数量，建议 2048-8192</div>
-
-            <label for="aiTemperature">温度 (temperature)</label>
-            <input type="number" id="aiTemperature" placeholder="0.7" min="0" max="2" step="0.1" value="0.7">
-            <div class="hint">值越高回复越有创意，值越低越精准。范围 0-2，建议 0.5-1.0</div>
-
-            <label for="aiContextLimit">上下文 token 上限</label>
-            <input type="number" id="aiContextLimit" placeholder="8000" min="1000" max="200000" value="8000">
-            <div class="hint">发送给 AI 的历史对话 + 当前消息的总 token 数上限。超出时自动裁剪最早的历史消息。建议设为模型上下文窗口的 60%-80%</div>
-
-            <label for="aiCorsProxy">CORS 代理（可选）</label>
-            <input type="text" id="aiCorsProxy" placeholder="留空表示直连，如需代理请填写代理地址">
-            <div class="hint">如果遇到 CORS 跨域错误，可填写代理地址。示例：<br>https://corsproxy.io/? 或 https://api.allorigins.win/raw?url=<br>留空则直接请求 API 地址（需服务器支持 CORS）</div>
+            <div class="ai-setting-field">
+                <label for="aiModelPreset">模型配置预设</label>
+                <select id="aiModelPreset" onchange="applyAIModelPreset(this.value)">
+                    <option value="">自定义配置</option>
+                    <option value="openai_gpt4o_mini">OpenAI · GPT-4o mini</option>
+                    <option value="openai_gpt4o">OpenAI · GPT-4o</option>
+                    <option value="deepseek_chat">DeepSeek · Chat</option>
+                    <option value="deepseek_reasoner">DeepSeek · Reasoner</option>
+                    <option value="qwen_plus">通义千问 · Qwen Plus</option>
+                    <option value="moonshot_8k">Moonshot · 8K</option>
+                </select>
+                <div class="hint">自动填充服务地址、模型与上下文参数；不覆盖 API Key。</div>
+            </div>
+            <div class="ai-setting-field">
+                <label for="aiApiKey">API Key</label>
+                <input type="password" id="aiApiKey" placeholder="sk-xxxxxxxxxxxxxxxx">
+                <div class="hint">你的 API 密钥，仅保存在浏览器本地。</div>
+            </div>
+            <div class="ai-setting-field ai-setting-field-full">
+                <label for="aiApiEndpoint">API 地址 (Endpoint)</label>
+                <input type="text" id="aiApiEndpoint" placeholder="https://api.openai.com/v1/chat/completions">
+                <div class="hint">示例：https://api.openai.com/v1/chat/completions；DeepSeek: https://api.deepseek.com/v1/chat/completions；通义千问: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions</div>
+            </div>
+            <div class="ai-setting-field">
+                <label for="aiModel">模型名称</label>
+                <input type="text" id="aiModel" placeholder="gpt-4o-mini" list="aiModelList">
+                <datalist id="aiModelList">
+                    <option value="claude-opus-4-6">
+                    <option value="claude-opus-4-6-thinking">
+                    <option value="gpt-4o-mini">
+                    <option value="gpt-4o">
+                    <option value="gpt-3.5-turbo">
+                    <option value="deepseek-chat">
+                    <option value="deepseek-reasoner">
+                    <option value="qwen-plus">
+                    <option value="qwen-turbo">
+                    <option value="moonshot-v1-8k">
+                </datalist>
+                <div class="hint">输入模型名称或从下拉列表中选择。</div>
+            </div>
+            <div class="ai-setting-field">
+                <label for="aiMaxTokens">最大输出长度 (max_tokens)</label>
+                <input type="number" id="aiMaxTokens" placeholder="4096" min="256" max="128000" value="4096">
+                <div class="hint">AI 单次回复的最大 token 数量。</div>
+            </div>
+            <div class="ai-setting-field">
+                <label for="aiTemperature">温度 (temperature)</label>
+                <input type="number" id="aiTemperature" placeholder="0.7" min="0" max="2" step="0.1" value="0.7">
+                <div class="hint">值越高越有创意，越低越精准。</div>
+            </div>
+            <div class="ai-setting-field">
+                <label for="aiContextLimit">上下文 token 上限</label>
+                <input type="number" id="aiContextLimit" placeholder="8000" min="1000" max="200000" value="8000">
+                <div class="hint">历史对话 + 当前消息的总 token 上限。</div>
+            </div>
+            <div class="ai-setting-field">
+                <label>上下文发送控制</label>
+                <label class="ai-checkbox-label"><input type="checkbox" id="aiIncludeEditorContext" checked> 自由对话附带当前编辑器全文</label>
+                <label class="ai-checkbox-label"><input type="checkbox" id="aiIncludeSummaryMemory" checked> 发送 AI 摘要记忆</label>
+                <label class="ai-checkbox-label"><input type="checkbox" id="aiIncludeArchiveMemory" checked> 检索并发送相关历史归档</label>
+                <label class="ai-checkbox-label"><input type="checkbox" id="aiIncludeRecentMemory" checked> 发送最近对话上下文</label>
+                <div class="hint">关闭不需要的上下文可减少发送内容、降低 token 消耗。</div>
+            </div>
+            <div class="ai-setting-field">
+                <label class="ai-checkbox-label"><input type="checkbox" id="aiThinkingEnabled"> Thinking 模式</label>
+                <div class="hint">开启后请求并显示兼容模型返回的思考/推理片段。</div>
+                <label for="aiCorsProxy" style="margin-top:12px;">CORS 代理（可选）</label>
+                <input type="text" id="aiCorsProxy" placeholder="留空表示直连，如需代理请填写代理地址">
+                <div class="hint">遇到 CORS 跨域错误时可填写代理地址。</div>
+            </div>
         </div>
         <div class="ai-settings-actions">
+            <button class="dialog-btn-cancel" id="aiTestBtn" onclick="testAIConnection()">测试连接</button>
             <button class="dialog-btn-cancel" onclick="hideAISettings()">取消</button>
             <button class="dialog-btn-confirm" onclick="saveAISettings()">保存设置</button>
         </div>
@@ -1839,13 +2213,20 @@
 <!-- 通知 -->
 <div class="toast" id="toast" role="alert" aria-live="polite"></div>
 
+<div class="svg-context-menu" id="svgContextMenu">
+    <button onclick="exportContextSvg('svg')">导出 SVG 文件</button>
+    <button onclick="exportContextSvg('jpg')">导出 JPG 图片</button>
+</div>
+
 <!-- 隐藏的文件输入 -->
 <input type="file" id="fileInput" accept=".md,.markdown,.txt,.mdown,.mkd" style="display:none">
 <input type="file" id="imageDirInput" webkitdirectory style="display:none">
+<input type="file" id="svgInsertInput" accept=".svg,image/svg+xml" style="display:none">
 
 <script src="https://cdn.bootcdn.net/ajax/libs/marked/12.0.1/marked.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <!-- 导入功能所需库（按需加载，仅在用户使用导入功能时加载） -->
 <script>
 // ========== 初始化 Marked ==========
@@ -1863,6 +2244,9 @@ if (typeof marked !== 'undefined') {
                 + '<div class="svg-render-container" style="text-align:center;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:16px;">'
                 + code
                 + '</div></div>';
+        }
+        if (lang && lang.toLowerCase() === 'mermaid') {
+            return '<div class="mermaid md-mermaid-pending">' + escapeHTML(code || '') + '</div>';
         }
         // 其他语言走默认渲染
         if (typeof token === 'object') return _origCodeRenderer(token);
@@ -1888,17 +2272,53 @@ if (typeof marked !== 'undefined') {
 function sanitizeHTML(html) {
     if (typeof DOMPurify === 'undefined') return html;
     return DOMPurify.sanitize(html, {
-        ADD_TAGS: ['svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse', 'g', 'text', 'tspan', 'defs', 'clipPath', 'use', 'symbol', 'marker', 'pattern', 'linearGradient', 'radialGradient', 'stop', 'foreignObject', 'details', 'summary', 'filter', 'feDropShadow', 'feGaussianBlur', 'feOffset', 'feMerge', 'feMergeNode', 'feBlend', 'feColorMatrix', 'feComposite', 'feFlood', 'feMorphology', 'feDisplacementMap', 'feTurbulence', 'feImage', 'feSpecularLighting', 'feDiffuseLighting', 'fePointLight', 'feSpotLight', 'feDistantLight', 'animate', 'animateTransform', 'set', 'image', 'title', 'desc', 'metadata', 'switch'],
-        ADD_ATTR: ['viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-opacity', 'fill-opacity', 'opacity', 'transform', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'd', 'points', 'font-size', 'font-family', 'font-weight', 'text-anchor', 'dominant-baseline', 'alignment-baseline', 'dx', 'dy', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'patternUnits', 'clip-path', 'marker-end', 'marker-start', 'marker-mid', 'open', 'filter', 'flood-color', 'flood-opacity', 'stdDeviation', 'markerWidth', 'markerHeight', 'refX', 'refY', 'orient', 'result', 'in', 'in2', 'mode', 'type', 'values', 'color-interpolation-filters', 'primitiveUnits', 'filterUnits', 'style', 'preserveAspectRatio', 'href', 'xlink:href', 'text-decoration', 'letter-spacing', 'word-spacing', 'writing-mode', 'fill-rule', 'clip-rule', 'display', 'visibility', 'overflow', 'color']
+        ADD_TAGS: ['svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse', 'g', 'text', 'tspan', 'defs', 'clipPath', 'use', 'symbol', 'marker', 'pattern', 'linearGradient', 'radialGradient', 'stop', 'foreignObject', 'details', 'summary', 'filter', 'feDropShadow', 'feGaussianBlur', 'feOffset', 'feMerge', 'feMergeNode', 'feBlend', 'feColorMatrix', 'feComposite', 'feFlood', 'feMorphology', 'feDisplacementMap', 'feTurbulence', 'feImage', 'feSpecularLighting', 'feDiffuseLighting', 'fePointLight', 'feSpotLight', 'feDistantLight', 'animate', 'animateTransform', 'set', 'image', 'title', 'desc', 'metadata', 'switch', 'math', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'msubsup', 'mfrac', 'msqrt', 'mroot', 'mtext', 'annotation'],
+        ADD_ATTR: ['viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-opacity', 'fill-opacity', 'opacity', 'transform', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'd', 'points', 'font-size', 'font-family', 'font-weight', 'text-anchor', 'dominant-baseline', 'alignment-baseline', 'dx', 'dy', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'patternUnits', 'clip-path', 'marker-end', 'marker-start', 'marker-mid', 'open', 'filter', 'flood-color', 'flood-opacity', 'stdDeviation', 'markerWidth', 'markerHeight', 'refX', 'refY', 'orient', 'result', 'in', 'in2', 'mode', 'type', 'values', 'color-interpolation-filters', 'primitiveUnits', 'filterUnits', 'style', 'preserveAspectRatio', 'href', 'xlink:href', 'text-decoration', 'letter-spacing', 'word-spacing', 'writing-mode', 'fill-rule', 'clip-rule', 'display', 'visibility', 'overflow', 'color', 'encoding', 'aria-hidden']
     });
 }
 
 const editor = document.getElementById('editor');
 const preview = document.getElementById('preview');
 const fileInput = document.getElementById('fileInput');
+const svgInsertInput = document.getElementById('svgInsertInput');
 var _elFileName = document.getElementById('fileName');
 let currentFileName = '';
 let debounceTimer = null;
+
+function closeToolbarDropdowns() {
+    document.querySelectorAll('.toolbar-group.open').forEach(function(group) {
+        group.classList.remove('open');
+        var trigger = group.querySelector('.toolbar-dropdown-trigger');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    });
+}
+
+function toggleToolbarDropdown(event, menuId) {
+    event.stopPropagation();
+    var menu = document.getElementById(menuId);
+    if (!menu) return;
+    var group = menu.closest('.toolbar-group');
+    if (!group) return;
+    var shouldOpen = !group.classList.contains('open');
+    closeToolbarDropdowns();
+    if (shouldOpen) {
+        group.classList.add('open');
+        var trigger = group.querySelector('.toolbar-dropdown-trigger');
+        if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    }
+}
+
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.toolbar-dropdown-menu button')) {
+        setTimeout(closeToolbarDropdowns, 0);
+        return;
+    }
+    if (!e.target.closest('.toolbar-group')) closeToolbarDropdowns();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeToolbarDropdowns();
+});
 
 // ========== localStorage 安全写入 ==========
 function safeLocalStorageSet(key, value) {
@@ -2091,7 +2511,8 @@ function rewriteImagePaths(html) {
 
 // ========== 本地文档库（替代服务器 API） ==========
 const DOC_DB_NAME = 'MDEditDocsStore';
-const DOC_DB_VERSION = 2;
+const DOC_DB_VERSION = 3;
+const DOC_VERSION_LIMIT = 20;
 const DOC_STORE_KEY = 'md-editor-doc-store'; // 旧版 localStorage 键，用于数据迁移
 let docsDB = null;
 
@@ -2109,6 +2530,11 @@ function initDocStoreDB() {
             }
             if (!db.objectStoreNames.contains('history')) {
                 db.createObjectStore('history', { keyPath: 'id' });
+            }
+            if (!db.objectStoreNames.contains('versions')) {
+                const versionStore = db.createObjectStore('versions', { keyPath: 'id' });
+                versionStore.createIndex('docName', 'docName', { unique: false });
+                versionStore.createIndex('createdAt', 'createdAt', { unique: false });
             }
         };
         req.onsuccess = async function(e) {
@@ -2151,8 +2577,9 @@ function migrateDocsFromLocalStorage() {
     });
 }
 
-async function localSaveDocAsync(name, content) {
+async function localSaveDocAsync(name, content, versionReason) {
     if (!name || !content.trim()) return;
+    const existing = await localOpenDocAsync(name);
     const db = await initDocStoreDB();
     if (!db) return;
     return new Promise((resolve) => {
@@ -2162,8 +2589,125 @@ async function localSaveDocAsync(name, content) {
             name: name,
             content: content,
             size: new TextEncoder().encode(content).length,
-            modified: new Date().toLocaleString('zh-CN')
+            modified: new Date().toLocaleString('zh-CN'),
+            starred: !!(existing && existing.starred),
+            tags: Array.isArray(existing?.tags) ? existing.tags : [],
+            folder: existing?.folder || ''
         });
+        tx.oncomplete = async () => {
+            if (versionReason !== false) await localSaveDocVersionAsync(name, content, versionReason || '保存');
+            resolve();
+        };
+        tx.onerror = () => resolve();
+    });
+}
+
+async function localSaveDocVersionAsync(name, content, reason) {
+    if (!name || !content.trim()) return;
+    const versions = await localListDocVersionsAsync(name);
+    if (versions.length && versions[0].content === content) return;
+    const db = await initDocStoreDB();
+    if (!db) return;
+    const createdAt = Date.now();
+    await new Promise((resolve) => {
+        const tx = db.transaction('versions', 'readwrite');
+        const store = tx.objectStore('versions');
+        store.put({
+            id: name + '::' + createdAt,
+            docName: name,
+            content: content,
+            size: new TextEncoder().encode(content).length,
+            reason: reason || '保存',
+            createdAt: createdAt,
+            time: new Date(createdAt).toLocaleString('zh-CN')
+        });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+    });
+    await localPruneDocVersionsAsync(name);
+}
+
+async function localListDocVersionsAsync(name) {
+    const db = await initDocStoreDB();
+    if (!db || !name) return [];
+    return new Promise((resolve) => {
+        const tx = db.transaction('versions', 'readonly');
+        const store = tx.objectStore('versions');
+        const req = store.index('docName').getAll(name);
+        req.onsuccess = e => {
+            const versions = e.target.result || [];
+            resolve(versions.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
+        };
+        req.onerror = () => resolve([]);
+    });
+}
+
+async function localGetDocVersionAsync(id) {
+    const db = await initDocStoreDB();
+    if (!db || !id) return null;
+    return new Promise((resolve) => {
+        const tx = db.transaction('versions', 'readonly');
+        const store = tx.objectStore('versions');
+        const req = store.get(id);
+        req.onsuccess = e => resolve(e.target.result || null);
+        req.onerror = () => resolve(null);
+    });
+}
+
+async function localDeleteDocVersionAsync(id) {
+    const db = await initDocStoreDB();
+    if (!db || !id) return;
+    return new Promise((resolve) => {
+        const tx = db.transaction('versions', 'readwrite');
+        tx.objectStore('versions').delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+    });
+}
+
+async function localDeleteDocVersionsAsync(name) {
+    const versions = await localListDocVersionsAsync(name);
+    if (!versions.length) return;
+    const db = await initDocStoreDB();
+    if (!db) return;
+    return new Promise((resolve) => {
+        const tx = db.transaction('versions', 'readwrite');
+        const store = tx.objectStore('versions');
+        versions.forEach(v => store.delete(v.id));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+    });
+}
+
+async function localRenameDocVersionsAsync(oldName, newName) {
+    const versions = await localListDocVersionsAsync(oldName);
+    if (!versions.length) return;
+    const db = await initDocStoreDB();
+    if (!db) return;
+    return new Promise((resolve) => {
+        const tx = db.transaction('versions', 'readwrite');
+        const store = tx.objectStore('versions');
+        versions.forEach((v, i) => {
+            store.delete(v.id);
+            v.docName = newName;
+            v.id = newName + '::' + (v.createdAt || Date.now()) + '::' + i;
+            store.put(v);
+        });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+    });
+}
+
+async function localPruneDocVersionsAsync(name) {
+    const versions = await localListDocVersionsAsync(name);
+    if (versions.length <= DOC_VERSION_LIMIT) return;
+    const oldVersions = versions.slice(DOC_VERSION_LIMIT);
+    const db = await initDocStoreDB();
+    if (!db) return;
+    return new Promise((resolve) => {
+        const tx = db.transaction('versions', 'readwrite');
+        const store = tx.objectStore('versions');
+        oldVersions.forEach(v => store.delete(v.id));
         tx.oncomplete = () => resolve();
         tx.onerror = () => resolve();
     });
@@ -2247,9 +2791,72 @@ async function localDeleteDocAsync(name) {
         const tx = db.transaction('docs', 'readwrite');
         const store = tx.objectStore('docs');
         store.delete(name);
+        tx.oncomplete = async () => {
+            await localDeleteDocVersionsAsync(name);
+            resolve();
+        };
+        tx.onerror = () => resolve();
+    });
+}
+
+async function localClearDocsAsync() {
+    const db = await initDocStoreDB();
+    if (!db) return;
+    return new Promise((resolve) => {
+        const tx = db.transaction('docs', 'readwrite');
+        const store = tx.objectStore('docs');
+        store.clear();
+        tx.oncomplete = async () => {
+            await localClearDocVersionsAsync();
+            resolve();
+        };
+        tx.onerror = () => resolve();
+    });
+}
+
+async function localClearDocVersionsAsync() {
+    const db = await initDocStoreDB();
+    if (!db) return;
+    return new Promise((resolve) => {
+        const tx = db.transaction('versions', 'readwrite');
+        tx.objectStore('versions').clear();
         tx.oncomplete = () => resolve();
         tx.onerror = () => resolve();
     });
+}
+
+async function localPutDocRecordAsync(doc, versionReason) {
+    if (!doc || !doc.name || typeof doc.content !== 'string') return false;
+    const db = await initDocStoreDB();
+    if (!db) return false;
+    return new Promise((resolve) => {
+        const content = doc.content;
+        const tx = db.transaction('docs', 'readwrite');
+        const store = tx.objectStore('docs');
+        store.put({
+            name: doc.name,
+            content: content,
+            size: doc.size || new TextEncoder().encode(content).length,
+            modified: doc.modified || new Date().toLocaleString('zh-CN'),
+            starred: !!doc.starred,
+            tags: Array.isArray(doc.tags) ? doc.tags : [],
+            folder: doc.folder || ''
+        });
+        tx.oncomplete = async () => {
+            if (versionReason !== false) await localSaveDocVersionAsync(doc.name, content, versionReason || '资料库写入');
+            resolve(true);
+        };
+        tx.onerror = () => resolve(false);
+    });
+}
+
+async function importDocsBackupAsync(docs) {
+    if (!Array.isArray(docs) || docs.length === 0) return 0;
+    let count = 0;
+    for (const doc of docs) {
+        if (await localPutDocRecordAsync(doc, '导入备份')) count++;
+    }
+    return count;
 }
 
 // ========== Markdown 修复（中文标点与加粗标记冲突） ==========
@@ -2262,8 +2869,22 @@ const STRONG_CLOSE = '\u200BSTRONG_E\u200B';
 // 遇到空行就会截断，导致 SVG 被拆散。
 // 预处理提取完整 SVG 块为占位符，后处理再还原。
 let _svgRenderCache = [];
+let _mathRenderCache = [];
+function renderMathHTML(tex, displayMode) {
+    if (typeof katex !== 'undefined') {
+        try {
+            return katex.renderToString(tex, {
+                displayMode: !!displayMode,
+                throwOnError: false,
+                output: 'htmlAndMathml'
+            });
+        } catch(e) {}
+    }
+    return '<code>' + escapeHTML(tex) + '</code>';
+}
 function preprocessMarkdown(md) {
     _svgRenderCache = [];
+    _mathRenderCache = [];
     // 第一步：保护代码围栏内的内容不被 SVG 正则误匹配
     var _fenceCache = [];
     md = md.replace(/^(`{3,})[^\n]*\n[\s\S]*?\n\1\s*$/gm, function(match) {
@@ -2271,13 +2892,33 @@ function preprocessMarkdown(md) {
         _fenceCache.push(match);
         return '<!--FENCE_PH_' + fIdx + '-->';
     });
+    var _inlineCodeCache = [];
+    md = md.replace(/`([^`\n]+?)`/g, function(match) {
+        var cIdx = _inlineCodeCache.length;
+        _inlineCodeCache.push(match);
+        return '<!--INLINE_CODE_PH_' + cIdx + '-->';
+    });
     // 第二步：保护裸 SVG 块（非代码块内），避免 marked 在空行处截断
     md = md.replace(/<svg[\s\S]*?<\/svg>/gi, function(match) {
         var idx = _svgRenderCache.length;
         _svgRenderCache.push(match);
         return '<div data-svg-render-ph="' + idx + '"></div>';
     });
-    // 第三步：还原代码围栏
+    // 第三步：保护数学公式，避免被 Markdown 语法干扰
+    md = md.replace(/\$\$([\s\S]+?)\$\$/g, function(match, tex) {
+        var idx = _mathRenderCache.length;
+        _mathRenderCache.push({ tex: tex.trim(), display: true });
+        return '<div data-math-render-ph="' + idx + '"></div>';
+    });
+    md = md.replace(/(^|[^\\$])\$([^\n$]+?)\$/g, function(match, prefix, tex) {
+        var idx = _mathRenderCache.length;
+        _mathRenderCache.push({ tex: tex.trim(), display: false });
+        return prefix + '<span data-math-render-ph="' + idx + '"></span>';
+    });
+    // 第四步：还原代码
+    md = md.replace(/<!--INLINE_CODE_PH_(\d+)-->/g, function(m, cIdx) {
+        return _inlineCodeCache[parseInt(cIdx)] || m;
+    });
     md = md.replace(/<!--FENCE_PH_(\d+)-->/g, function(m, fIdx) {
         return _fenceCache[parseInt(fIdx)] || m;
     });
@@ -2289,6 +2930,17 @@ function postprocessHTML(html) {
         return _svgRenderCache[parseInt(idx)] || m;
     });
     _svgRenderCache = [];
+    html = html.replace(/<div data-math-render-ph="(\d+)"><\/div>/g, function(m, idx) {
+        var item = _mathRenderCache[parseInt(idx)];
+        if (!item) return m;
+        return '<div class="math-block">' + renderMathHTML(item.tex, true) + '</div>';
+    });
+    html = html.replace(/<span data-math-render-ph="(\d+)"><\/span>/g, function(m, idx) {
+        var item = _mathRenderCache[parseInt(idx)];
+        if (!item) return m;
+        return '<span class="math-inline">' + renderMathHTML(item.tex, false) + '</span>';
+    });
+    _mathRenderCache = [];
     return html.split(STRONG_OPEN).join('<strong>').split(STRONG_CLOSE).join('</strong>');
 }
 
@@ -2302,6 +2954,49 @@ function renderMarkdownHTML(raw) {
     return html;
 }
 
+async function ensureMermaidLib() {
+    if (typeof mermaid === 'undefined') {
+        await loadScript('https://cdn.bootcdn.net/ajax/libs/mermaid/10.9.1/mermaid.min.js');
+    }
+    if (typeof mermaid !== 'undefined') {
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'strict',
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default'
+        });
+    }
+}
+
+let _mermaidRenderSeq = 0;
+async function enhanceMarkdownDynamicBlocks(root) {
+    const blocks = Array.from(root.querySelectorAll('.md-mermaid-pending'));
+    if (!blocks.length) return;
+    try {
+        await ensureMermaidLib();
+    } catch(e) {
+        blocks.forEach(function(block) {
+            block.classList.remove('md-mermaid-pending');
+            block.classList.add('mermaid-error');
+        });
+        return;
+    }
+    for (const block of blocks) {
+        const code = block.textContent || '';
+        const id = 'mdedit-mermaid-' + (++_mermaidRenderSeq);
+        try {
+            const result = await mermaid.render(id, code);
+            block.innerHTML = sanitizeHTML(result.svg || '');
+            block.classList.remove('md-mermaid-pending');
+            addCopyButtons();
+            updateOutline();
+        } catch(e) {
+            block.classList.remove('md-mermaid-pending');
+            block.classList.add('mermaid-error');
+            block.innerHTML = '<pre><code>' + escapeHTML(code) + '</code></pre>';
+        }
+    }
+}
+
 // ========== 实时预览 ==========
 let statsTimer = null;
 
@@ -2309,6 +3004,7 @@ function updatePreview() {
     const raw = getEditorContentUnfolded();
     const html = renderMarkdownHTML(raw);
     preview.innerHTML = html;
+    enhanceMarkdownDynamicBlocks(preview);
     // 图片懒加载
     preview.querySelectorAll('img:not([loading])').forEach(function(img) { img.loading = 'lazy'; });
     // 非关键任务延迟执行，避免阻塞输入响应
@@ -2335,6 +3031,7 @@ function debouncePreview() {
 editor.addEventListener('input', function() {
     debouncePreview();
     updateExportState();
+    if (_elDocFindPanel && _elDocFindPanel.classList.contains('active')) updateDocFindMatches(false);
 });
 
 // ========== 粘贴处理：SVG 自动包裹 + 图片粘贴插入 ==========
@@ -2362,6 +3059,54 @@ function insertTextAtCursor(textToInsert) {
     debouncePreview();
     updateExportState();
 }
+
+function triggerInsertSvgFile() {
+    svgInsertInput.value = '';
+    svgInsertInput.click();
+}
+
+function insertSvgTextAtCursor(svgText, fileName) {
+    const trimmed = (svgText || '').trim();
+    if (!/^<svg[\s>]/i.test(trimmed) || !/<\/svg>\s*$/i.test(trimmed)) {
+        showAlert('文件内容不是有效的 SVG');
+        return false;
+    }
+    const start = editor.selectionStart || 0;
+    const end = editor.selectionEnd || start;
+    const beforeText = editor.value.substring(0, start);
+    const afterText = editor.value.substring(end);
+    const prefix = beforeText && !beforeText.endsWith('\n') ? '\n\n' : '';
+    const suffix = afterText && !afterText.startsWith('\n') ? '\n\n' : '\n';
+    const block = '```svg\n' + trimmed + '\n```';
+    insertTextAtCursor(prefix + block + suffix);
+    updatePreview();
+    updateCursorPos();
+    showToast('已插入 SVG 文件' + (fileName ? '：' + fileName : ''));
+    return true;
+}
+
+svgInsertInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) {
+        svgInsertInput.value = '';
+        return;
+    }
+    if (!/\.svg$/i.test(file.name) && file.type !== 'image/svg+xml') {
+        showAlert('请选择 SVG 文件');
+        svgInsertInput.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        insertSvgTextAtCursor(evt.target.result || '', file.name);
+        svgInsertInput.value = '';
+    };
+    reader.onerror = function() {
+        showAlert('读取 SVG 文件失败');
+        svgInsertInput.value = '';
+    };
+    reader.readAsText(file);
+});
 
 editor.addEventListener('paste', function(e) {
     var clipData = e.clipboardData || window.clipboardData;
@@ -2491,7 +3236,7 @@ function readFile(file) {
         updatePreview();
         updateExportState();
         scrollToTop();
-        await localSaveDocAsync(file.name, content);
+        await localSaveDocAsync(file.name, content, '打开文件');
         markSaved();
         showToast('已打开: ' + file.name);
     };
@@ -2515,7 +3260,7 @@ async function saveFile() {
     }
     const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
     downloadBlob(blob, name);
-    await localSaveDocAsync(name, content);
+    await localSaveDocAsync(name, content, '手动保存');
     markSaved();
     showToast('已保存: ' + name);
 }
@@ -2534,7 +3279,7 @@ async function saveAsFile() {
     
     const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
     downloadBlob(blob, name);
-    await localSaveDocAsync(name, content);
+    await localSaveDocAsync(name, content, '另存为');
     markSaved();
     showToast('已另存为: ' + name);
 }
@@ -2554,7 +3299,7 @@ function showExportModal() { _elExportModal.classList.add('active'); }
 function hideExportModal() { _elExportModal.classList.remove('active'); }
 
 function getStyledHTML() {
-    const raw = editor.value;
+    const raw = getEditorContentUnfolded();
     const bodyHTML = renderMarkdownHTML(raw);
     return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -2602,11 +3347,11 @@ async function exportHTML() {
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     downloadBlob(blob, name);
     hideExportModal();
-    await localSaveDocAsync(currentFileName || 'untitled.md', editor.value);
+    await localSaveDocAsync(currentFileName || 'untitled.md', editor.value, '导出 HTML');
     showToast('已导出 HTML: ' + name);
 }
 
-async function exportDocx() {
+async function exportDoc() {
     showToast('正在处理图片，请稍候...');
     const html = await getStyledHTMLWithImages();
     const name = (currentFileName || 'untitled').replace(/\.md$/i, '') + '.doc';
@@ -2617,20 +3362,40 @@ async function exportDocx() {
     showToast('已导出 DOC: ' + name + ' (可用 WPS 打开)');
 }
 
-function exportPDF() {
+async function exportPDF() {
     hideExportModal();
-    const pdfName = (currentFileName || 'untitled').replace(/\.md$/i, '');
-    const originalTitle = document.title;
-    document.title = pdfName;
-    showToast('即将打开打印对话框，请选择「另存为 PDF」');
-    setTimeout(() => {
-        window.print();
-        document.title = originalTitle;
-    }, 300);
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        showAlert('浏览器阻止了打印窗口，请允许弹出窗口后重试。');
+        return;
+    }
+    showToast('正在生成 PDF 打印页面...');
+    try {
+        const html = await getStyledHTMLWithImages();
+        const autoCloseScript = '<script>window.onafterprint=function(){setTimeout(function(){window.close();},300);};<\/script>';
+        const printHTML = html.replace('</body>', autoCloseScript + '</body>');
+        const closeAfterPrint = function() {
+            setTimeout(function() {
+                try { if (!printWindow.closed) printWindow.close(); } catch(e) {}
+            }, 300);
+        };
+        printWindow.onafterprint = closeAfterPrint;
+        if (printWindow.addEventListener) printWindow.addEventListener('afterprint', closeAfterPrint);
+        printWindow.document.open();
+        printWindow.document.write(printHTML);
+        printWindow.document.close();
+        setTimeout(function() {
+            printWindow.focus();
+            printWindow.print();
+        }, 500);
+    } catch (err) {
+        printWindow.close();
+        showAlert('生成 PDF 打印页面失败：' + (err && err.message ? err.message : '未知错误'));
+    }
 }
 
 async function copyHTML() {
-    const raw = editor.value;
+    const raw = getEditorContentUnfolded();
     let bodyHTML = renderMarkdownHTML(raw);
     bodyHTML = await embedImagesInHTML(bodyHTML);
     await copyToClipboard(raw, bodyHTML);
@@ -2749,6 +3514,107 @@ function downloadBlob(blob, filename) {
     a.click();
     URL.revokeObjectURL(url);
 }
+
+var _elSvgContextMenu = document.getElementById('svgContextMenu');
+var _contextSvgTarget = null;
+
+function getExportBaseName() {
+    return (currentFileName || 'untitled')
+        .replace(/^.*[/\\]/, '')
+        .replace(/\.(md|markdown|txt)$/i, '')
+        .replace(/[\\/:*?"<>|]+/g, '_') || 'untitled';
+}
+
+function getSvgExportSize(svg) {
+    const widthAttr = svg.getAttribute('width') || '';
+    const heightAttr = svg.getAttribute('height') || '';
+    let width = widthAttr.includes('%') ? 0 : parseFloat(widthAttr);
+    let height = heightAttr.includes('%') ? 0 : parseFloat(heightAttr);
+    const viewBox = (svg.getAttribute('viewBox') || '').trim().split(/\s+/).map(Number);
+    if ((!width || !height) && viewBox.length === 4 && viewBox.every(function(n) { return !isNaN(n); })) {
+        width = width || viewBox[2];
+        height = height || viewBox[3];
+    }
+    const rect = svg.getBoundingClientRect();
+    width = Math.max(1, Math.round(width || rect.width || 800));
+    height = Math.max(1, Math.round(height || rect.height || 600));
+    return { width: width, height: height };
+}
+
+function serializeSvgForExport(svg) {
+    const clone = svg.cloneNode(true);
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    const size = getSvgExportSize(svg);
+    if (!clone.getAttribute('width') || (clone.getAttribute('width') || '').includes('%')) clone.setAttribute('width', size.width);
+    if (!clone.getAttribute('height') || (clone.getAttribute('height') || '').includes('%')) clone.setAttribute('height', size.height);
+    return new XMLSerializer().serializeToString(clone);
+}
+
+function showSvgContextMenu(x, y, svg) {
+    _contextSvgTarget = svg;
+    _elSvgContextMenu.style.left = Math.max(8, Math.min(x, window.innerWidth - 180)) + 'px';
+    _elSvgContextMenu.style.top = Math.max(8, Math.min(y, window.innerHeight - 90)) + 'px';
+    _elSvgContextMenu.classList.add('active');
+}
+
+function hideSvgContextMenu() {
+    _elSvgContextMenu.classList.remove('active');
+}
+
+async function exportContextSvg(type) {
+    const svg = _contextSvgTarget;
+    hideSvgContextMenu();
+    if (!svg) return;
+    const baseName = getExportBaseName() + '-svg-' + Date.now().toString(36);
+    const svgText = serializeSvgForExport(svg);
+    if (type === 'svg') {
+        downloadBlob(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }), baseName + '.svg');
+        showToast('已导出 SVG 文件');
+        return;
+    }
+    const size = getSvgExportSize(svg);
+    const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = size.width;
+        canvas.height = size.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(function(jpgBlob) {
+            if (!jpgBlob) {
+                showAlert('导出 JPG 失败');
+                return;
+            }
+            downloadBlob(jpgBlob, baseName + '.jpg');
+            showToast('已导出 JPG 图片');
+        }, 'image/jpeg', 0.92);
+    };
+    img.onerror = function() {
+        URL.revokeObjectURL(url);
+        showAlert('导出 JPG 失败：SVG 无法转换为图片');
+    };
+    img.src = url;
+}
+
+preview.addEventListener('contextmenu', function(e) {
+    const svg = e.target.closest && e.target.closest('svg');
+    if (!svg || !preview.contains(svg)) return;
+    e.preventDefault();
+    showSvgContextMenu(e.clientX, e.clientY, svg);
+});
+
+document.addEventListener('click', function(e) {
+    if (!_elSvgContextMenu.contains(e.target)) hideSvgContextMenu();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') hideSvgContextMenu();
+});
+window.addEventListener('scroll', hideSvgContextMenu, true);
 
 var _elToast = document.getElementById('toast');
 function showToast(msg, duration) {
@@ -3184,8 +4050,10 @@ document.addEventListener('drop', function(e) {
             readFile(file);
         } else if (name.match(/\.pdf$/)) {
             handleImportFile(file, 'pdf');
-        } else if (name.match(/\.docx?$/)) {
+        } else if (name.match(/\.docx$/)) {
             handleImportFile(file, 'word');
+        } else if (name.match(/\.doc$/)) {
+            showAlert('仅支持 .docx 格式。旧版 .doc 请先用 WPS/Word 另存为 .docx');
         } else if (name.match(/\.(xlsx|xls|csv)$/)) {
             handleImportFile(file, 'excel');
         } else if (name.match(/\.pptx$/)) {
@@ -3220,6 +4088,14 @@ _elExportModal.addEventListener('click', function(e) {
 // ========== 资料库 (Library) 面板 ==========
 var _elLibraryPanel = document.getElementById('libraryPanel');
 var _elLibraryList = document.getElementById('libraryList');
+var _elLibraryBackupInput = document.getElementById('libraryBackupInput');
+var _elLibraryFilterInput = document.getElementById('libraryFilterInput');
+var _elLibraryStarFilter = document.getElementById('libraryStarFilter');
+var _elLibrarySelectedCount = document.getElementById('librarySelectedCount');
+var _elVersionPanel = document.getElementById('versionPanel');
+var _elVersionList = document.getElementById('versionList');
+let librarySelectedDocs = new Set();
+let libraryVisibleDocs = [];
 
 async function toggleLibrary() {
     _elLibraryPanel.classList.toggle('active');
@@ -3229,6 +4105,17 @@ async function toggleLibrary() {
 async function renderLibraryAsync() {
     const list = _elLibraryList;
     let docs = await localListDocsAsync();
+    const filterText = (_elLibraryFilterInput ? _elLibraryFilterInput.value.trim().toLowerCase() : '');
+    const onlyStarred = !!(_elLibraryStarFilter && _elLibraryStarFilter.checked);
+    docs = docs.filter(doc => {
+        if (onlyStarred && !doc.starred) return false;
+        if (!filterText) return true;
+        const tags = Array.isArray(doc.tags) ? doc.tags.join(' ') : '';
+        const haystack = [doc.name || '', doc.folder || '', tags].join(' ').toLowerCase();
+        return haystack.includes(filterText);
+    });
+    libraryVisibleDocs = docs.map(doc => doc.name);
+    updateLibrarySelectedCount();
     
     const sortSelect = document.getElementById('librarySortSelect');
     const sortType = sortSelect ? sortSelect.value : 'timeDesc';
@@ -3244,22 +4131,90 @@ async function renderLibraryAsync() {
     }
 
     if (docs.length === 0) {
-        list.innerHTML = '<div class="empty-tip">数据库中暂无文档</div>';
+        list.innerHTML = '<div class="empty-tip">暂无匹配文档</div>';
         return;
     }
     list.innerHTML = docs.map(doc => `
         <div class="history-item" onclick="openLibraryFile('${escapeAttr(doc.name)}')">
             <div class="history-meta">
-                <span class="history-name" style="max-width: 220px;">${escapeHTML(doc.name)}</span>
+                <span style="display:flex;align-items:center;gap:6px;min-width:0;">
+                    <input type="checkbox" ${librarySelectedDocs.has(doc.name) ? 'checked' : ''} onclick="event.stopPropagation(); toggleLibrarySelection('${escapeAttr(doc.name)}', this.checked)">
+                    <span class="history-name" style="max-width: 190px;">${doc.starred ? '⭐ ' : ''}${escapeHTML(doc.name)}</span>
+                </span>
                 <span class="history-time">${escapeHTML(doc.modified || '')}</span>
             </div>
-            <div class="history-preview">${((doc.size || 0) / 1024).toFixed(1)} KB</div>
+            <div class="history-preview">${((doc.size || 0) / 1024).toFixed(1)} KB${doc.folder ? ' · 分类: ' + escapeHTML(doc.folder) : ''}${Array.isArray(doc.tags) && doc.tags.length ? ' · 标签: ' + escapeHTML(doc.tags.join(', ')) : ''}</div>
             <div class="history-actions">
                 <button class="btn-restore" onclick="event.stopPropagation(); openLibraryFile('${escapeAttr(doc.name)}')">打开</button>
+                <button class="btn-restore" onclick="event.stopPropagation(); toggleLibraryStar('${escapeAttr(doc.name)}')">${doc.starred ? '取消星标' : '星标'}</button>
+                <button class="btn-restore" onclick="event.stopPropagation(); renameLibraryDoc('${escapeAttr(doc.name)}')">重命名</button>
+                <button class="btn-restore" onclick="event.stopPropagation(); editLibraryTags('${escapeAttr(doc.name)}')">标签</button>
+                <button class="btn-restore" onclick="event.stopPropagation(); editLibraryFolder('${escapeAttr(doc.name)}')">分类</button>
+                <button class="btn-restore" onclick="event.stopPropagation(); duplicateLibraryDoc('${escapeAttr(doc.name)}')">复制</button>
                 <button class="btn-delete" onclick="event.stopPropagation(); deleteLibraryDoc('${escapeAttr(doc.name)}')">删除</button>
             </div>
         </div>
     `).join('');
+}
+
+function updateLibrarySelectedCount() {
+    if (_elLibrarySelectedCount) _elLibrarySelectedCount.textContent = '已选 ' + librarySelectedDocs.size;
+}
+
+function toggleLibrarySelection(name, checked) {
+    if (checked) librarySelectedDocs.add(name);
+    else librarySelectedDocs.delete(name);
+    updateLibrarySelectedCount();
+}
+
+function toggleSelectVisibleLibraryDocs() {
+    if (!libraryVisibleDocs.length) {
+        showToast('当前没有可选择的文档');
+        return;
+    }
+    const allSelected = libraryVisibleDocs.every(name => librarySelectedDocs.has(name));
+    libraryVisibleDocs.forEach(name => {
+        if (allSelected) librarySelectedDocs.delete(name);
+        else librarySelectedDocs.add(name);
+    });
+    renderLibraryAsync();
+}
+
+async function updateLibraryDocMeta(name, patch) {
+    const data = await localOpenDocAsync(name);
+    if (!data) { showAlert('文档不存在'); return false; }
+    const next = Object.assign({}, data, patch || {});
+    return await localPutDocRecordAsync(next, false);
+}
+
+async function toggleLibraryStar(name) {
+    const data = await localOpenDocAsync(name);
+    if (!data) { showAlert('文档不存在'); return; }
+    await updateLibraryDocMeta(name, { starred: !data.starred });
+    await renderLibraryAsync();
+    showToast(data.starred ? '已取消星标' : '已添加星标');
+}
+
+async function editLibraryTags(name) {
+    const data = await localOpenDocAsync(name);
+    if (!data) { showAlert('文档不存在'); return; }
+    const oldTags = Array.isArray(data.tags) ? data.tags.join(', ') : '';
+    const input = await showPrompt('输入标签，多个标签用逗号分隔：', oldTags);
+    if (input === null) return;
+    const tags = input.split(/[,，]/).map(t => t.trim()).filter(Boolean);
+    await updateLibraryDocMeta(name, { tags: Array.from(new Set(tags)) });
+    await renderLibraryAsync();
+    showToast('已更新标签');
+}
+
+async function editLibraryFolder(name) {
+    const data = await localOpenDocAsync(name);
+    if (!data) { showAlert('文档不存在'); return; }
+    const input = await showPrompt('输入分类/文件夹名称，留空表示未分类：', data.folder || '');
+    if (input === null) return;
+    await updateLibraryDocMeta(name, { folder: input.trim() });
+    await renderLibraryAsync();
+    showToast('已更新分类');
 }
 
 async function openLibraryFile(name) {
@@ -3278,8 +4233,262 @@ async function openLibraryFile(name) {
 async function deleteLibraryDoc(name) {
     if (!await showConfirm('确定从数据库中彻底删除文档 "' + name + '"？\\n此操作不可恢复！', { danger: true, confirmText: '删除' })) return;
     await localDeleteDocAsync(name);
+    librarySelectedDocs.delete(name);
     await renderLibraryAsync();
     showToast('已彻底删除: ' + name);
+}
+
+async function getSelectedLibraryDocs() {
+    const names = Array.from(librarySelectedDocs);
+    const docs = [];
+    for (const name of names) {
+        const doc = await localOpenDocAsync(name);
+        if (doc) docs.push(doc);
+    }
+    return docs;
+}
+
+async function batchExportLibraryDocs() {
+    const docs = await getSelectedLibraryDocs();
+    if (!docs.length) {
+        showToast('请先选择要导出的文档');
+        return;
+    }
+    const backup = {
+        app: 'MDEdit',
+        type: 'docs-backup',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        docs: docs.map(doc => ({
+            name: doc.name,
+            content: doc.content,
+            size: doc.size,
+            modified: doc.modified,
+            starred: !!doc.starred,
+            tags: Array.isArray(doc.tags) ? doc.tags : [],
+            folder: doc.folder || ''
+        }))
+    };
+    const date = new Date().toISOString().slice(0, 10);
+    downloadBlob(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' }), 'mdedit_selected_' + date + '.json');
+    showToast('已导出 ' + docs.length + ' 篇选中文档');
+}
+
+async function batchDeleteLibraryDocs() {
+    const docs = await getSelectedLibraryDocs();
+    if (!docs.length) {
+        showToast('请先选择要删除的文档');
+        return;
+    }
+    if (!await showConfirm('确定删除选中的 ' + docs.length + ' 篇文档？\\n此操作不可恢复。', { danger: true, confirmText: '删除', cancelText: '取消' })) return;
+    for (const doc of docs) {
+        await localDeleteDocAsync(doc.name);
+        librarySelectedDocs.delete(doc.name);
+    }
+    await renderLibraryAsync();
+    showToast('已删除 ' + docs.length + ' 篇文档');
+}
+
+async function renameLibraryDoc(name) {
+    const data = await localOpenDocAsync(name);
+    if (!data) { showAlert('文档不存在'); return; }
+    const newName = await showPrompt('请输入新的文档名', name);
+    if (!newName) return;
+    const finalName = newName.match(/\.(md|markdown|txt)$/i) ? newName : newName + '.md';
+    if (finalName === name) return;
+    const exists = await localOpenDocAsync(finalName);
+    if (exists && !await showConfirm('已存在同名文档 "' + finalName + '"，是否覆盖？', { confirmText: '覆盖', cancelText: '取消', danger: true })) return;
+    if (exists) await localDeleteDocVersionsAsync(finalName);
+    await localPutDocRecordAsync({
+        name: finalName,
+        content: data.content,
+        size: data.size,
+        modified: new Date().toLocaleString('zh-CN'),
+        starred: !!data.starred,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        folder: data.folder || ''
+    }, '重命名');
+    await localRenameDocVersionsAsync(name, finalName);
+    await localDeleteDocAsync(name);
+    if (currentFileName === name) {
+        currentFileName = finalName;
+        _elFileName.textContent = finalName;
+    }
+    await renderLibraryAsync();
+    showToast('已重命名为: ' + finalName);
+}
+
+async function duplicateLibraryDoc(name) {
+    const data = await localOpenDocAsync(name);
+    if (!data) { showAlert('文档不存在'); return; }
+    const base = name.replace(/\.(md|markdown|txt)$/i, '');
+    const extMatch = name.match(/\.(md|markdown|txt)$/i);
+    const ext = extMatch ? extMatch[0] : '.md';
+    let copyName = base + ' 副本' + ext;
+    let index = 2;
+    while (await localOpenDocAsync(copyName)) {
+        copyName = base + ' 副本 ' + index + ext;
+        index++;
+    }
+    await localPutDocRecordAsync({
+        name: copyName,
+        content: data.content,
+        size: data.size,
+        modified: new Date().toLocaleString('zh-CN'),
+        starred: !!data.starred,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        folder: data.folder || ''
+    }, '复制副本');
+    await renderLibraryAsync();
+    showToast('已复制为: ' + copyName);
+}
+
+async function toggleVersionPanel() {
+    _elVersionPanel.classList.toggle('active');
+    if (_elVersionPanel.classList.contains('active')) await renderVersionPanelAsync();
+}
+
+async function renderVersionPanelAsync() {
+    if (!currentFileName) {
+        _elVersionList.innerHTML = '<div class="empty-tip">当前文档尚未命名，保存后可查看版本历史</div>';
+        return;
+    }
+    const versions = await localListDocVersionsAsync(currentFileName);
+    if (!versions.length) {
+        _elVersionList.innerHTML = '<div class="empty-tip">暂无版本记录。保存文档后会自动记录最近 ' + DOC_VERSION_LIMIT + ' 个版本</div>';
+        return;
+    }
+    _elVersionList.innerHTML = versions.map(v => `
+        <div class="history-item">
+            <div class="history-meta">
+                <span class="history-name" style="max-width: 180px;">${escapeHTML(v.reason || '保存')}</span>
+                <span class="history-time">${escapeHTML(v.time || '')}</span>
+            </div>
+            <div class="history-preview">${((v.size || 0) / 1024).toFixed(1)} KB</div>
+            <div class="history-actions">
+                <button class="btn-restore" onclick="event.stopPropagation(); restoreDocVersion('${escapeAttr(v.id)}')">恢复</button>
+                <button class="btn-restore" onclick="event.stopPropagation(); copyDocVersion('${escapeAttr(v.id)}')">复制</button>
+                <button class="btn-delete" onclick="event.stopPropagation(); deleteDocVersion('${escapeAttr(v.id)}')">删除</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function restoreDocVersion(id) {
+    const version = await localGetDocVersionAsync(id);
+    if (!version) { showAlert('版本不存在'); return; }
+    if (!await showConfirm('确定恢复到版本：' + (version.time || '') + '？\\n当前编辑器内容会被替换，恢复前会自动记录当前版本。', { confirmText: '恢复', cancelText: '取消' })) return;
+    if (currentFileName && editor.value.trim()) {
+        await localSaveDocVersionAsync(currentFileName, getEditorContentUnfolded(), '恢复前自动备份');
+    }
+    currentFileName = version.docName;
+    _elFileName.textContent = currentFileName;
+    editor.value = version.content;
+    updatePreview();
+    updateExportState();
+    scrollToTop();
+    await localSaveDocAsync(currentFileName, version.content, '恢复版本');
+    markSaved();
+    await renderVersionPanelAsync();
+    showToast('已恢复版本');
+}
+
+async function copyDocVersion(id) {
+    const version = await localGetDocVersionAsync(id);
+    if (!version) { showAlert('版本不存在'); return; }
+    await copyToClipboard(version.content);
+    showToast('已复制该版本内容');
+}
+
+async function deleteDocVersion(id) {
+    if (!await showConfirm('确定删除该版本记录？', { danger: true, confirmText: '删除', cancelText: '取消' })) return;
+    await localDeleteDocVersionAsync(id);
+    await renderVersionPanelAsync();
+    showToast('已删除版本记录');
+}
+
+async function clearCurrentDocVersions() {
+    if (!currentFileName) {
+        showToast('当前文档尚未命名');
+        return;
+    }
+    const versions = await localListDocVersionsAsync(currentFileName);
+    if (!versions.length) {
+        showToast('暂无版本记录');
+        return;
+    }
+    if (!await showConfirm('确定清空当前文档的 ' + versions.length + ' 个版本记录？\\n此操作不可恢复。', { danger: true, confirmText: '清空', cancelText: '取消' })) return;
+    await localDeleteDocVersionsAsync(currentFileName);
+    await renderVersionPanelAsync();
+    showToast('已清空当前文档版本');
+}
+
+async function clearLibraryDocs() {
+    const docs = await localListDocsAsync();
+    if (!docs.length) {
+        showToast('资料库暂无文档');
+        return;
+    }
+    if (!await showConfirm('确定清空资料库中的 ' + docs.length + ' 篇文档？\\n建议先导出备份，此操作不可恢复。', { danger: true, confirmText: '清空', cancelText: '取消' })) return;
+    await localClearDocsAsync();
+    librarySelectedDocs.clear();
+    await renderLibraryAsync();
+    showToast('资料库已清空');
+}
+
+async function exportLibraryBackup() {
+    const docs = await localListDocsAsync();
+    if (!docs.length) {
+        showToast('资料库暂无文档可备份');
+        return;
+    }
+    const backup = {
+        app: 'MDEdit',
+        type: 'docs-backup',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        docs: docs.map(doc => ({
+            name: doc.name,
+            content: doc.content,
+            size: doc.size,
+            modified: doc.modified,
+            starred: !!doc.starred,
+            tags: Array.isArray(doc.tags) ? doc.tags : [],
+            folder: doc.folder || ''
+        }))
+    };
+    const date = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' });
+    downloadBlob(blob, 'MDEdit-docs-backup-' + date + '.json');
+    showToast('已导出资料库备份，共 ' + docs.length + ' 篇文档');
+}
+
+function triggerLibraryBackupImport() {
+    _elLibraryBackupInput.value = '';
+    _elLibraryBackupInput.click();
+}
+
+_elLibraryBackupInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    importLibraryBackupFile(file);
+});
+
+async function importLibraryBackupFile(file) {
+    try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const docs = Array.isArray(data) ? data : data.docs;
+        if (!Array.isArray(docs) || docs.length === 0) {
+            throw new Error('备份文件中没有可导入的文档');
+        }
+        if (!await showConfirm('将导入 ' + docs.length + ' 篇文档。若存在同名文档，将被备份内容覆盖。是否继续？', { confirmText: '导入', cancelText: '取消' })) return;
+        const count = await importDocsBackupAsync(docs);
+        await renderLibraryAsync();
+        showToast('已导入资料库备份: ' + count + ' 篇文档');
+    } catch (err) {
+        showAlert('导入备份失败: ' + (err.message || '文件格式错误'));
+    }
 }
 
 // ========== 滚动联动 ==========
@@ -3363,6 +4572,7 @@ function toggleDarkMode() {
     const isDark = document.documentElement.classList.toggle('dark');
     safeLocalStorageSet('md-editor-dark-mode', isDark ? 'true' : 'false');
     _applyDarkState(isDark);
+    updatePreview();
     showToast(isDark ? '已切换为暗色模式' : '已切换为亮色模式');
 }
 
@@ -3384,6 +4594,7 @@ function toggleDarkMode() {
                 document.documentElement.classList.remove('dark');
             }
             _applyDarkState(document.documentElement.classList.contains('dark'));
+            updatePreview();
         });
     }
 })();
@@ -3575,6 +4786,60 @@ function updateOutline() {
     });
 }
 
+function getMarkdownHeadings() {
+    const lines = editor.value.split('\n');
+    const headings = [];
+    let inFence = false;
+    lines.forEach(function(line) {
+        if (/^\s*```/.test(line)) {
+            inFence = !inFence;
+            return;
+        }
+        if (inFence) return;
+        const match = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
+        if (!match) return;
+        const title = match[2].trim();
+        if (!title) return;
+        headings.push({
+            level: match[1].length,
+            title: title
+        });
+    });
+    return headings;
+}
+
+function buildOutlineMarkdown() {
+    const headings = getMarkdownHeadings();
+    if (!headings.length) return '';
+    const minLevel = Math.min.apply(null, headings.map(h => h.level));
+    return headings.map(function(h) {
+        const indent = '  '.repeat(Math.max(0, h.level - minLevel));
+        return indent + '- ' + h.title;
+    }).join('\n');
+}
+
+async function copyOutlineMarkdown() {
+    const outline = buildOutlineMarkdown();
+    if (!outline) {
+        showToast('当前文档没有标题');
+        return;
+    }
+    await copyToClipboard(outline);
+    showToast('已复制目录');
+}
+
+function insertOutlineMarkdown() {
+    const outline = buildOutlineMarkdown();
+    if (!outline) {
+        showToast('当前文档没有标题');
+        return;
+    }
+    insertTextAtCursor('\n## 目录\n\n' + outline + '\n\n');
+    updatePreview();
+    updateExportState();
+    showToast('已插入目录');
+}
+
 // ========== 离开页面未保存提示 ==========
 let lastSavedContent = '';
 
@@ -3677,7 +4942,7 @@ async function setImportedContent(markdown, fileName) {
     updatePreview();
     updateExportState();
     scrollToTop();
-    await localSaveDocAsync(currentFileName, editor.value);
+    await localSaveDocAsync(currentFileName, editor.value, '导入文件');
     markSaved();
 }
 
@@ -3685,7 +4950,7 @@ function triggerImport(type) {
     currentImportType = type;
     const acceptMap = {
         'pdf': '.pdf',
-        'word': '.docx,.doc',
+        'word': '.docx',
         'excel': '.xlsx,.xls,.csv',
         'ppt': '.pptx'
     };
@@ -4121,6 +5386,142 @@ _elImportModal.addEventListener('click', function(e) {
     if (e.target === this) hideImportModal();
 });
 
+// ========== 当前文档查找/替换 ==========
+var _elDocFindPanel = document.getElementById('docFindPanel');
+var _elDocFindInput = document.getElementById('docFindInput');
+var _elDocReplaceInput = document.getElementById('docReplaceInput');
+var _elDocFindCase = document.getElementById('docFindCase');
+var _elDocFindCount = document.getElementById('docFindCount');
+let docFindMatches = [];
+let docFindIndex = -1;
+
+function getDocFindNeedle() {
+    return _elDocFindCase.checked ? _elDocFindInput.value : _elDocFindInput.value.toLowerCase();
+}
+
+function getDocFindHaystack() {
+    return _elDocFindCase.checked ? editor.value : editor.value.toLowerCase();
+}
+
+function updateDocFindMatches(jumpToMatch) {
+    const needle = getDocFindNeedle();
+    docFindMatches = [];
+    docFindIndex = -1;
+    if (!needle) {
+        updateDocFindCount();
+        return;
+    }
+    const haystack = getDocFindHaystack();
+    let pos = 0;
+    while (true) {
+        const idx = haystack.indexOf(needle, pos);
+        if (idx === -1) break;
+        docFindMatches.push(idx);
+        pos = idx + Math.max(needle.length, 1);
+    }
+    if (docFindMatches.length > 0) {
+        if (jumpToMatch === false) {
+            docFindIndex = -1;
+            updateDocFindCount();
+            return;
+        }
+        const cursor = editor.selectionStart || 0;
+        docFindIndex = docFindMatches.findIndex(idx => idx >= cursor);
+        if (docFindIndex === -1) docFindIndex = 0;
+        selectDocFindMatch();
+    }
+    updateDocFindCount();
+}
+
+function updateDocFindCount() {
+    const total = docFindMatches.length;
+    _elDocFindCount.textContent = total ? ((docFindIndex >= 0 ? docFindIndex + 1 : 0) + '/' + total) : '0/0';
+}
+
+function selectDocFindMatch() {
+    if (docFindIndex < 0 || docFindIndex >= docFindMatches.length) return;
+    const start = docFindMatches[docFindIndex];
+    const end = start + _elDocFindInput.value.length;
+    editor.focus();
+    editor.setSelectionRange(start, end);
+    const lineHeight = 20;
+    const before = editor.value.slice(0, start);
+    const line = before.split('\n').length;
+    editor.scrollTop = Math.max(0, (line - 3) * lineHeight);
+    updateDocFindCount();
+}
+
+function showDocFind() {
+    _elDocFindPanel.classList.add('active');
+    _elDocFindInput.focus();
+    _elDocFindInput.select();
+    updateDocFindMatches(false);
+}
+
+function hideDocFind() {
+    _elDocFindPanel.classList.remove('active');
+    editor.focus();
+}
+
+function toggleDocFind() {
+    if (_elDocFindPanel.classList.contains('active')) {
+        hideDocFind();
+    } else {
+        showDocFind();
+    }
+}
+
+function findNextInDoc() {
+    if (!docFindMatches.length) updateDocFindMatches(false);
+    if (!docFindMatches.length) return;
+    docFindIndex = docFindIndex < 0 ? 0 : (docFindIndex + 1) % docFindMatches.length;
+    selectDocFindMatch();
+}
+
+function findPrevInDoc() {
+    if (!docFindMatches.length) updateDocFindMatches(false);
+    if (!docFindMatches.length) return;
+    docFindIndex = docFindIndex < 0 ? docFindMatches.length - 1 : (docFindIndex - 1 + docFindMatches.length) % docFindMatches.length;
+    selectDocFindMatch();
+}
+
+function replaceCurrentInDoc() {
+    if (!docFindMatches.length || docFindIndex < 0) findNextInDoc();
+    if (!docFindMatches.length || docFindIndex < 0) return;
+    const start = docFindMatches[docFindIndex];
+    const end = start + _elDocFindInput.value.length;
+    editor.value = editor.value.slice(0, start) + _elDocReplaceInput.value + editor.value.slice(end);
+    editor.setSelectionRange(start, start + _elDocReplaceInput.value.length);
+    updatePreview();
+    updateExportState();
+    updateDocFindMatches(false);
+}
+
+async function replaceAllInDoc() {
+    const needle = _elDocFindInput.value;
+    if (!needle) return;
+    updateDocFindMatches(false);
+    const total = docFindMatches.length;
+    if (!total) return;
+    if (!await showConfirm('确定替换当前文档中的 ' + total + ' 处匹配？', { confirmText: '全部替换', cancelText: '取消' })) return;
+    const source = editor.value;
+    const flags = _elDocFindCase.checked ? 'g' : 'gi';
+    const re = new RegExp(escapeRegExp(needle), flags);
+    editor.value = source.replace(re, function() { return _elDocReplaceInput.value; });
+    updatePreview();
+    updateExportState();
+    updateDocFindMatches(false);
+    showToast('已替换 ' + total + ' 处');
+}
+
+_elDocFindInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (e.shiftKey) findPrevInDoc();
+        else findNextInDoc();
+    }
+});
+
 // ========== 搜索面板（基于 localStorage） ==========
 let searchTimer = null;
 var _elSearchPanel = document.getElementById('searchPanel');
@@ -4216,9 +5617,13 @@ function escapeRegExp(str) {
 document.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
-        toggleSearch();
+        if (e.shiftKey) toggleSearch();
+        else showDocFind();
     }
     if (e.key === 'Escape') {
+        if (_elDocFindPanel.classList.contains('active')) {
+            _elDocFindPanel.classList.remove('active');
+        }
         if (_elSearchPanel.classList.contains('active')) {
             _elSearchPanel.classList.remove('active');
         }
@@ -4248,7 +5653,7 @@ async function loadContent(content, fileName) {
     updatePreview();
     updateExportState();
     scrollToTop();
-    await localSaveDocAsync(fileName, content);
+    await localSaveDocAsync(fileName, content, '自动加载');
     markSaved();
     showToast('\u5df2\u52a0\u8f7d: ' + fileName);
 }
@@ -4278,6 +5683,14 @@ autoLoadFile().then(async function() {
 const AI_SETTINGS_KEY = 'md-editor-ai-settings';
 const AI_INSERT_SVG_JPEG_KEY = 'md-editor-ai-insert-svg-jpeg';
 const AI_MEMORY_KEY = 'md-editor-ai-memory';
+const AI_MODEL_PRESETS = {
+    openai_gpt4o_mini: { endpoint: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o-mini', maxTokens: 4096, contextLimit: 64000, temperature: 0.7, thinkingEnabled: false },
+    openai_gpt4o: { endpoint: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o', maxTokens: 4096, contextLimit: 64000, temperature: 0.7, thinkingEnabled: false },
+    deepseek_chat: { endpoint: 'https://api.deepseek.com/v1/chat/completions', model: 'deepseek-chat', maxTokens: 4096, contextLimit: 64000, temperature: 0.7, thinkingEnabled: false },
+    deepseek_reasoner: { endpoint: 'https://api.deepseek.com/v1/chat/completions', model: 'deepseek-reasoner', maxTokens: 8192, contextLimit: 64000, temperature: 0.6, thinkingEnabled: true },
+    qwen_plus: { endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', model: 'qwen-plus', maxTokens: 4096, contextLimit: 64000, temperature: 0.7, thinkingEnabled: false },
+    moonshot_8k: { endpoint: 'https://api.moonshot.cn/v1/chat/completions', model: 'moonshot-v1-8k', maxTokens: 4096, contextLimit: 8000, temperature: 0.7, thinkingEnabled: false }
+};
 let aiChatHistory = []; // {role, content}
 let aiDisplayMessages = []; // 兼容保留（已迁移到 IndexedDB）
 let aiAbortController = null;
@@ -4285,8 +5698,15 @@ let aiIsStreaming = false;
 
 // ---------- AI 设置管理 ----------
 function normalizeEndpoint(url) {
-    // 自动补全 URL：如果用户只输入了 base_url（如 https://xxx/v1），自动补上 /chat/completions
+    // 自动补全 URL：如果用户只输入了 base_url（如 https://xxx 或 https://xxx/v1），自动补上 /v1/chat/completions
     url = url.replace(/\/+$/, ''); // 去掉末尾斜杠
+    try {
+        const parsed = new URL(url);
+        if (!parsed.pathname || parsed.pathname === '/') {
+            parsed.pathname = '/v1/chat/completions';
+            return parsed.toString().replace(/\/+$/, '');
+        }
+    } catch(e) {}
     if (url.endsWith('/v1')) {
         url += '/chat/completions';
     } else if (url.endsWith('/v1/chat')) {
@@ -4305,24 +5725,37 @@ function getAISettings() {
 }
 
 var _aiEl = {
+    preset: document.getElementById('aiModelPreset'),
     endpoint: document.getElementById('aiApiEndpoint'),
     apiKey: document.getElementById('aiApiKey'),
     model: document.getElementById('aiModel'),
     maxTokens: document.getElementById('aiMaxTokens'),
     temperature: document.getElementById('aiTemperature'),
     contextLimit: document.getElementById('aiContextLimit'),
+    includeEditorContext: document.getElementById('aiIncludeEditorContext'),
+    includeSummaryMemory: document.getElementById('aiIncludeSummaryMemory'),
+    includeArchiveMemory: document.getElementById('aiIncludeArchiveMemory'),
+    includeRecentMemory: document.getElementById('aiIncludeRecentMemory'),
+    thinkingEnabled: document.getElementById('aiThinkingEnabled'),
     corsProxy: document.getElementById('aiCorsProxy'),
+    testBtn: document.getElementById('aiTestBtn'),
     modal: document.getElementById('aiSettingsModal')
 };
 
 function showAISettings() {
     const s = getAISettings();
+    _aiEl.preset.value = s.preset || '';
     _aiEl.endpoint.value = s.endpoint || '';
     _aiEl.apiKey.value = s.apiKey || '';
     _aiEl.model.value = s.model || 'claude-opus-4-6';
     _aiEl.maxTokens.value = s.maxTokens || 4096;
     _aiEl.temperature.value = s.temperature !== undefined ? s.temperature : 0.7;
     _aiEl.contextLimit.value = s.contextLimit || 8000;
+    _aiEl.includeEditorContext.checked = s.includeEditorContext !== false;
+    _aiEl.includeSummaryMemory.checked = s.includeSummaryMemory !== false;
+    _aiEl.includeArchiveMemory.checked = s.includeArchiveMemory !== false;
+    _aiEl.includeRecentMemory.checked = s.includeRecentMemory !== false;
+    _aiEl.thinkingEnabled.checked = !!s.thinkingEnabled;
     _aiEl.corsProxy.value = s.corsProxy || '';
     _aiEl.modal.classList.add('active');
 }
@@ -4331,13 +5764,31 @@ function hideAISettings() {
     _aiEl.modal.classList.remove('active');
 }
 
+function applyAIModelPreset(key) {
+    const preset = AI_MODEL_PRESETS[key];
+    if (!preset) return;
+    _aiEl.endpoint.value = preset.endpoint;
+    _aiEl.model.value = preset.model;
+    _aiEl.maxTokens.value = preset.maxTokens;
+    _aiEl.contextLimit.value = preset.contextLimit;
+    _aiEl.temperature.value = preset.temperature;
+    _aiEl.thinkingEnabled.checked = !!preset.thinkingEnabled;
+    showToast('已应用模型预设');
+}
+
 function saveAISettings() {
+    const preset = _aiEl.preset.value;
     let endpoint = _aiEl.endpoint.value.trim();
     const apiKey = _aiEl.apiKey.value.trim();
     const model = _aiEl.model.value.trim();
     const maxTokens = parseInt(_aiEl.maxTokens.value) || 4096;
     const temperature = parseFloat(_aiEl.temperature.value);
     const contextLimit = parseInt(_aiEl.contextLimit.value) || 8000;
+    const includeEditorContext = !!_aiEl.includeEditorContext.checked;
+    const includeSummaryMemory = !!_aiEl.includeSummaryMemory.checked;
+    const includeArchiveMemory = !!_aiEl.includeArchiveMemory.checked;
+    const includeRecentMemory = !!_aiEl.includeRecentMemory.checked;
+    const thinkingEnabled = !!_aiEl.thinkingEnabled.checked;
     const corsProxy = _aiEl.corsProxy.value.trim();
 
     if (!endpoint) { showAlert('请填写 API 地址'); return; }
@@ -4349,13 +5800,103 @@ function saveAISettings() {
     _aiEl.endpoint.value = endpoint;
 
     safeLocalStorageSet(AI_SETTINGS_KEY, JSON.stringify({
-        endpoint, apiKey, model, maxTokens,
+        preset, endpoint, apiKey, model, maxTokens,
         temperature: isNaN(temperature) ? 0.7 : temperature,
-        contextLimit, corsProxy
+        contextLimit, includeEditorContext, includeSummaryMemory,
+        includeArchiveMemory, includeRecentMemory, thinkingEnabled, corsProxy
     }));
     hideAISettings();
     showToast('AI 设置已保存');
     addAISystemMsg('API 已配置（' + model + '），可以开始对话了。');
+}
+
+async function testAIConnection() {
+    let endpoint = _aiEl.endpoint.value.trim();
+    const apiKey = _aiEl.apiKey.value.trim();
+    const model = _aiEl.model.value.trim();
+    const thinkingEnabled = !!_aiEl.thinkingEnabled.checked;
+    const corsProxy = _aiEl.corsProxy.value.trim();
+
+    if (!endpoint) { showAlert('请填写 API 地址'); return; }
+    if (!apiKey) { showAlert('请填写 API Key'); return; }
+    if (!model) { showAlert('请填写模型名称'); return; }
+
+    endpoint = normalizeEndpoint(endpoint);
+    _aiEl.endpoint.value = endpoint;
+
+    const originalText = _aiEl.testBtn.textContent;
+    _aiEl.testBtn.disabled = true;
+    _aiEl.testBtn.textContent = '测试中...';
+
+    try {
+        let fetchUrl = endpoint;
+        if (corsProxy) {
+            fetchUrl = corsProxy + encodeURIComponent(endpoint);
+        }
+
+        const testBody = {
+            model: model,
+            messages: [{ role: 'user', content: '请只回复 OK' }],
+            max_tokens: 16,
+            temperature: 0,
+            stream: false
+        };
+        if (thinkingEnabled) testBody.enable_thinking = true;
+
+        const resp = await fetch(fetchUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify(testBody)
+        });
+
+        let data = null;
+        let responseText = '';
+        try { responseText = await resp.text(); } catch(e) {}
+        if (responseText) {
+            try { data = JSON.parse(responseText); } catch(e) {}
+        }
+
+        if (!resp.ok) {
+            const detail = data?.error?.message || data?.message || responseText || '';
+            let message = 'HTTP ' + resp.status;
+            if (detail) message += '\n' + detail.slice(0, 500);
+            if (resp.status === 400) {
+                message += '\n\n可能原因：请求参数不兼容，或该服务不支持当前模型/参数。';
+            } else if (resp.status === 401 || resp.status === 403) {
+                message += '\n\n可能原因：API Key 无效、无权限或账户不可用。';
+            } else if (resp.status === 404) {
+                message += '\n\n可能原因：API Endpoint 路径不存在，或模型名称不存在。';
+                message += '\n当前 Endpoint：' + endpoint;
+                message += '\n请确认地址是否为完整 Chat Completions 地址，例如 https://your-domain/v1/chat/completions。';
+            } else if (resp.status === 429) {
+                message += '\n\n可能原因：请求过于频繁、额度不足或触发限流。';
+            } else if (resp.status >= 500) {
+                message += '\n\n可能原因：上游 AI 服务异常。';
+            }
+            throw new Error(message);
+        }
+
+        const content = data?.choices?.[0]?.message?.content || '';
+        showAlert('连接测试成功。\n模型：' + model + (content ? '\n返回：' + content.trim().slice(0, 80) : ''));
+    } catch (err) {
+        let msg = err && err.message ? err.message : '未知错误';
+        if (msg === 'Failed to fetch' || msg.includes('NetworkError')) {
+            msg = '请求失败，可能是网络或 CORS 跨域限制。';
+            if (location.protocol === 'file:') {
+                msg += '\n当前使用 file:// 打开，建议通过 HTTP 服务访问。';
+            }
+            if (!corsProxy) {
+                msg += '\n也可以尝试在 CORS 代理中填写可用代理地址。';
+            }
+        }
+        showAlert('连接测试失败：\n' + msg);
+    } finally {
+        _aiEl.testBtn.disabled = false;
+        _aiEl.testBtn.textContent = originalText;
+    }
 }
 
 _aiEl.modal.addEventListener('click', function(e) {
@@ -4642,7 +6183,7 @@ async function buildSmartContext(currentPrompt, settings) {
     const messages = [];
 
     // 第 1 层：摘要记忆（如果有）
-    if (aiSummary) {
+    if (settings.includeSummaryMemory !== false && aiSummary) {
         const summaryMsg = '[记忆摘要] ' + aiSummary;
         const summaryTokens = estimateTokens(summaryMsg);
         if (usedTokens + summaryTokens < contextLimit * 0.9) {
@@ -4657,7 +6198,7 @@ async function buildSmartContext(currentPrompt, settings) {
 
     // 第 2 层：相关性检索（从归档中找相关消息）
     const budgetForRetrieval = Math.floor((contextLimit - usedTokens) * 0.3); // 30% 预算给检索
-    if (budgetForRetrieval > 200) {
+    if (settings.includeArchiveMemory !== false && budgetForRetrieval > 200) {
         const relevant = await searchRelevantMessages(currentPrompt, 6);
         // 去重：排除当前会话中已有的消息
         const recentIds = new Set(aiChatHistory.map(function(m) { return m.content; }));
@@ -4674,9 +6215,11 @@ async function buildSmartContext(currentPrompt, settings) {
     }
 
     // 第 3 层：工作记忆（最近对话，从后往前填充）
-    const budgetForRecent = contextLimit - usedTokens - estimateTokens(currentPrompt) - 10;
-    const recentContext = trimContextByTokens(aiChatHistory, budgetForRecent);
-    messages.push(...recentContext);
+    if (settings.includeRecentMemory !== false) {
+        const budgetForRecent = contextLimit - usedTokens - estimateTokens(currentPrompt) - 10;
+        const recentContext = trimContextByTokens(aiChatHistory, budgetForRecent);
+        messages.push(...recentContext);
+    }
 
     // 当前消息
     messages.push({ role: 'user', content: currentPrompt });
@@ -4726,10 +6269,7 @@ async function restoreAIMessages() {
             div.className = 'ai-msg ai-msg-ai';
             div.setAttribute('data-raw', m.content);
             if (typeof marked !== 'undefined') {
-                let html = marked.parse(preprocessMarkdown(m.content));
-                html = postprocessHTML(html);
-                html = sanitizeHTML(html);
-                div.innerHTML = html;
+                div.innerHTML = renderMarkdownHTML(m.content);
             } else {
                 div.textContent = m.content;
             }
@@ -4742,6 +6282,7 @@ async function restoreAIMessages() {
                 '<button class="ai-msg-action-btn" onclick="aiCopyContent(this)">复制内容</button>';
             div.appendChild(actions);
             _elAiMessages.appendChild(div);
+            enhanceMarkdownDynamicBlocks(div);
         }
     });
     _elAiMessages.scrollTop = _elAiMessages.scrollHeight;
@@ -4797,15 +6338,31 @@ function createAIResponseMsg() {
     return div;
 }
 
-function finalizeAIMsg(div, rawContent) {
+function renderAIStreamingContent(div, content, thinking) {
+    div._rawContent = content || '';
+    div._thinkingContent = thinking || '';
+    if (thinking) {
+        div.innerHTML = '<details class="ai-thinking-block" open><summary>Thinking</summary><pre></pre></details><div class="ai-stream-content"></div>';
+        div.querySelector('.ai-thinking-block pre').textContent = thinking;
+        div.querySelector('.ai-stream-content').textContent = content || '';
+    } else {
+        div.textContent = content || '';
+    }
+}
+
+function finalizeAIMsg(div, rawContent, thinkingContent) {
     div.classList.remove('ai-typing');
     div.setAttribute('data-raw', rawContent);
     // 渲染 Markdown
+    let thinkingHTML = '';
+    if (thinkingContent) {
+        thinkingHTML = '<details class="ai-thinking-block"><summary>Thinking</summary><pre>' + escapeHTML(thinkingContent) + '</pre></details>';
+    }
     if (typeof marked !== 'undefined') {
-        let html = marked.parse(preprocessMarkdown(rawContent));
-        html = postprocessHTML(html);
-        html = sanitizeHTML(html);
-        div.innerHTML = html;
+        div.innerHTML = thinkingHTML + renderMarkdownHTML(rawContent);
+        div.style.whiteSpace = '';
+    } else if (thinkingHTML) {
+        div.innerHTML = thinkingHTML + '<div>' + escapeHTML(rawContent) + '</div>';
         div.style.whiteSpace = '';
     }
     // 添加操作按钮
@@ -4817,6 +6374,7 @@ function finalizeAIMsg(div, rawContent) {
         '<button class="ai-msg-action-btn" onclick="aiAppendEditor(this)">追加到编辑器</button>' +
         '<button class="ai-msg-action-btn" onclick="aiCopyContent(this)">复制内容</button>';
     div.appendChild(actions);
+    enhanceMarkdownDynamicBlocks(div);
     _elAiMessages.scrollTop = _elAiMessages.scrollHeight;
 }
 
@@ -4937,6 +6495,27 @@ const AI_QUICK_PROMPTS = {
     }
 };
 
+function getAIEditorScope() {
+    const start = editor.selectionStart || 0;
+    const end = editor.selectionEnd || 0;
+    const selected = start !== end ? editor.value.substring(start, end).trim() : '';
+    if (selected) {
+        return {
+            content: selected,
+            selected: true
+        };
+    }
+    return {
+        content: editor.value.trim(),
+        selected: false
+    };
+}
+
+function buildAIEditorPrompt(config, scope) {
+    const scopeText = scope.selected ? '请只处理以下选中的 Markdown 内容，不要改写或补全未选中的上下文。\n\n选中内容：\n' : '';
+    return scopeText + config.prompt + scope.content;
+}
+
 function aiQuickAction(type) {
     const config = AI_QUICK_PROMPTS[type];
     if (!config) return;
@@ -4948,15 +6527,16 @@ function aiQuickAction(type) {
     }
 
     if (config.useEditor) {
-        const editorContent = editor.value.trim();
-        if (!editorContent) {
+        const scope = getAIEditorScope();
+        if (!scope.content) {
             showToast('编辑器内容为空，请先输入或打开文档');
             return;
         }
-        const fullPrompt = config.prompt + editorContent;
+        const fullPrompt = buildAIEditorPrompt(config, scope);
         const actionLabels = { continue: '续写内容', polish: '润色优化', summary: '生成摘要', translate_en: '翻译为英文', translate_zh: '翻译为中文', fix: '修正语法', expand: '扩展内容', chart: '生成图表' };
-        addAIUserMsg(fullPrompt, '[快捷操作] ' + (actionLabels[type] || type));
-        saveMessageToDB({ role: 'user', content: fullPrompt, displayContent: '[快捷操作] ' + (actionLabels[type] || type) });
+        const displayLabel = '[快捷操作] ' + (actionLabels[type] || type) + (scope.selected ? '（选中文本）' : '');
+        addAIUserMsg(fullPrompt, displayLabel);
+        saveMessageToDB({ role: 'user', content: fullPrompt, displayContent: displayLabel });
         doAISend(fullPrompt, type);
     } else if (config.needInput) {
         // 设置输入框提示并聚焦
@@ -4991,7 +6571,7 @@ function sendAIMessage() {
     } else {
         // 自由对话模式，将编辑器内容作为上下文
         const editorContent = editor.value.trim();
-        if (editorContent) {
+        if (s.includeEditorContext !== false && editorContent) {
             fullPrompt = '当前编辑器中的 Markdown 文档内容如下：\n```markdown\n' + editorContent + '\n```\n\n用户请求：' + text + '\n\n请直接输出 Markdown 内容，不要用代码块包裹（除非内容本身是代码）。';
         } else {
             fullPrompt = text + '\n\n请用 Markdown 格式回复，直接输出内容，不要用代码块包裹整个回复。';
@@ -5039,6 +6619,41 @@ function trimContextByTokens(history, tokenBudget) {
     return result;
 }
 
+function getAIThinkingDelta(json) {
+    const delta = json?.choices?.[0]?.delta || {};
+    const candidates = [
+        delta.reasoning_content,
+        delta.reasoningContent,
+        delta.thinking,
+        delta.reasoning,
+        json?.reasoning_content,
+        json?.thinking
+    ];
+    for (const item of candidates) {
+        if (!item) continue;
+        if (typeof item === 'string') return item;
+        if (typeof item === 'object') {
+            if (typeof item.content === 'string') return item.content;
+            if (typeof item.text === 'string') return item.text;
+        }
+    }
+    return '';
+}
+
+function buildAIRequestBody(s, messages) {
+    const body = {
+        model: s.model || 'claude-opus-4-6',
+        messages: messages,
+        max_tokens: s.maxTokens || 4096,
+        temperature: s.temperature !== undefined ? s.temperature : 0.7,
+        stream: true
+    };
+    if (s.thinkingEnabled) {
+        body.enable_thinking = true;
+    }
+    return body;
+}
+
 async function doAISend(userPrompt, actionType) {
     const s = getAISettings();
 
@@ -5067,13 +6682,7 @@ async function doAISend(userPrompt, actionType) {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + s.apiKey
             },
-            body: JSON.stringify({
-                model: s.model || 'claude-opus-4-6',
-                messages: messages,
-                max_tokens: s.maxTokens || 4096,
-                temperature: s.temperature !== undefined ? s.temperature : 0.7,
-                stream: true
-            }),
+            body: JSON.stringify(buildAIRequestBody(s, messages)),
             signal: aiAbortController.signal
         });
 
@@ -5090,6 +6699,7 @@ async function doAISend(userPrompt, actionType) {
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let fullContent = '';
+        let thinkingContent = '';
         let buffer = '';
 
         while (true) {
@@ -5109,14 +6719,16 @@ async function doAISend(userPrompt, actionType) {
                 try {
                     const json = JSON.parse(data);
                     const delta = json.choices?.[0]?.delta?.content;
-                    if (delta) {
-                        fullContent += delta;
+                    const thinkingDelta = s.thinkingEnabled ? getAIThinkingDelta(json) : '';
+                    if (delta || thinkingDelta) {
+                        if (thinkingDelta) thinkingContent += thinkingDelta;
+                        if (delta) fullContent += delta;
                         // 使用 rAF 节流 DOM 更新，避免高频刷新
                         if (!responseDiv._rafPending) {
                             responseDiv._rafPending = true;
                             requestAnimationFrame(function() {
                                 if (!responseDiv._finalized) {
-                                    responseDiv.textContent = fullContent;
+                                    renderAIStreamingContent(responseDiv, fullContent, thinkingContent);
                                     _elAiMessages.scrollTop = _elAiMessages.scrollHeight;
                                 }
                                 responseDiv._rafPending = false;
@@ -5131,10 +6743,10 @@ async function doAISend(userPrompt, actionType) {
 
         // 完成 — 标记已结束，阻止 pending rAF 覆盖 finalizeAIMsg 的内容
         responseDiv._finalized = true;
-        responseDiv.textContent = fullContent;
+        renderAIStreamingContent(responseDiv, fullContent, thinkingContent);
         aiChatHistory.push({ role: 'assistant', content: fullContent });
         saveMessageToDB({ role: 'assistant', content: fullContent });
-        finalizeAIMsg(responseDiv, fullContent);
+        finalizeAIMsg(responseDiv, fullContent, thinkingContent);
         // 每 10 条消息自动触发摘要更新
         if (aiChatHistory.length % 10 === 0) {
             generateAISummary().catch(function(e) { console.warn('自动摘要失败:', e); });
@@ -5143,11 +6755,12 @@ async function doAISend(userPrompt, actionType) {
     } catch (err) {
         if (err.name === 'AbortError') {
             responseDiv._finalized = true;
-            const partial = responseDiv.textContent || '';
-            if (partial) {
+            const partial = responseDiv._rawContent || '';
+            const partialThinking = responseDiv._thinkingContent || '';
+            if (partial || partialThinking) {
                 aiChatHistory.push({ role: 'assistant', content: partial });
                 saveMessageToDB({ role: 'assistant', content: partial });
-                finalizeAIMsg(responseDiv, partial);
+                finalizeAIMsg(responseDiv, partial, partialThinking);
                 addAISystemMsg('生成已中止（部分内容已保留）');
             } else {
                 responseDiv.remove();
