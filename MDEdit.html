@@ -4020,6 +4020,84 @@ var _elExportModal = document.getElementById('exportModal');
 function showExportModal() { _elExportModal.classList.add('active'); }
 function hideExportModal() { _elExportModal.classList.remove('active'); }
 
+var EXPORT_MEDIA_MAX_WIDTH = 800;
+
+function parseExportSizeValue(value) {
+    value = String(value || '').trim();
+    if (!value || value.indexOf('%') >= 0) return 0;
+    var match = value.match(/^([0-9.]+)(px)?$/i) || value.match(/(?:^|;)\s*width\s*:\s*([0-9.]+)px/i);
+    return match ? parseFloat(match[1]) : 0;
+}
+
+function getInlineStyleNumber(el, prop) {
+    var style = el.getAttribute('style') || '';
+    var match = style.match(new RegExp('(?:^|;)\\s*' + prop + '\\s*:\\s*([0-9.]+)px', 'i'));
+    return match ? parseFloat(match[1]) : 0;
+}
+
+function getSvgExportBox(svg) {
+    var width = parseExportSizeValue(svg.getAttribute('width')) || getInlineStyleNumber(svg, 'width');
+    var height = parseExportSizeValue(svg.getAttribute('height')) || getInlineStyleNumber(svg, 'height');
+    var viewBox = (svg.getAttribute('viewBox') || '').trim().split(/\s+/).map(Number);
+    if ((!width || !height) && viewBox.length === 4 && viewBox.every(function(n) { return !isNaN(n); })) {
+        width = width || viewBox[2];
+        height = height || viewBox[3];
+    }
+    return {
+        width: Math.max(0, width || 0),
+        height: Math.max(0, height || 0)
+    };
+}
+
+function applyExportMediaConstraints(root, options) {
+    if (!root || !root.querySelectorAll) return;
+    var maxWidth = (options && options.maxWidth) || EXPORT_MEDIA_MAX_WIDTH;
+    root.querySelectorAll('img').forEach(function(img) {
+        var width = parseExportSizeValue(img.getAttribute('width')) || getInlineStyleNumber(img, 'width');
+        var height = parseExportSizeValue(img.getAttribute('height')) || getInlineStyleNumber(img, 'height');
+        if (width > maxWidth) {
+            img.setAttribute('width', String(maxWidth));
+            if (height) img.setAttribute('height', String(Math.round(height * maxWidth / width)));
+            if (getInlineStyleNumber(img, 'width')) img.style.width = '100%';
+        }
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.boxSizing = 'border-box';
+    });
+    root.querySelectorAll('svg').forEach(function(svg) {
+        var box = getSvgExportBox(svg);
+        if (!svg.getAttribute('viewBox') && box.width && box.height) {
+            svg.setAttribute('viewBox', '0 0 ' + box.width + ' ' + box.height);
+        }
+        if (box.width > maxWidth) {
+            svg.setAttribute('width', String(maxWidth));
+            if (box.height) svg.setAttribute('height', String(Math.round(box.height * maxWidth / box.width)));
+            if (getInlineStyleNumber(svg, 'width')) svg.style.width = '100%';
+        }
+        if (!svg.getAttribute('preserveAspectRatio')) svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        svg.style.maxWidth = '100%';
+        svg.style.height = 'auto';
+        svg.style.boxSizing = 'border-box';
+    });
+    root.querySelectorAll('.svg-render-container, .mermaid, .math-block, pre, table').forEach(function(el) {
+        el.style.maxWidth = '100%';
+        el.style.boxSizing = 'border-box';
+    });
+}
+
+function normalizeExportHTML(html) {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    applyExportMediaConstraints(doc.body);
+    return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+}
+
+function normalizeExportFragmentHTML(html) {
+    var temp = document.createElement('div');
+    temp.innerHTML = html;
+    applyExportMediaConstraints(temp);
+    return temp.innerHTML;
+}
+
 function getStyledHTML() {
     const raw = getEditorContentUnfolded();
     const bodyHTML = renderMarkdownHTML(raw);
@@ -4029,6 +4107,8 @@ function getStyledHTML() {
 <meta charset="UTF-8">
 <title>${escapeHTML(currentFileName || 'Markdown 文档')}</title>
 <style>
+html { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
 body {
     font-family: 'Microsoft YaHei', 'PingFang SC', 'SimSun', sans-serif;
     max-width: 800px;
@@ -4052,10 +4132,20 @@ pre code { background: transparent; color: inherit; padding: 0; }
 table { width: 100%; border-collapse: collapse; margin: 0 0 14px; }
 th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; }
 th { background: #f8fafc; font-weight: bold; }
-img { max-width: 100%; }
+td, th { word-break: break-word; }
+img, svg, canvas, video { max-width: 100%; height: auto; box-sizing: border-box; }
+.svg-render-container, .mermaid, .math-block { max-width: 100%; overflow: hidden; }
 hr { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
 a { color: #3b82f6; }
 strong { font-weight: bold; }
+@page { size: A4; margin: 16mm; }
+@media print {
+    body { max-width: none; margin: 0; padding: 0; }
+    img, svg, canvas, video { max-width: 100% !important; height: auto !important; page-break-inside: avoid; break-inside: avoid; }
+    .svg-render-container, .mermaid, .math-block { max-width: 100% !important; overflow: hidden !important; page-break-inside: avoid; break-inside: avoid; }
+    pre { white-space: pre-wrap; word-break: break-word; overflow: visible; }
+    table { max-width: 100%; page-break-inside: auto; }
+}
 </style>
 </head>
 <body>${bodyHTML}</body>
@@ -4120,6 +4210,7 @@ async function copyHTML() {
     const raw = getEditorContentUnfolded();
     let bodyHTML = renderMarkdownHTML(raw);
     bodyHTML = await embedImagesInHTML(bodyHTML);
+    bodyHTML = normalizeExportFragmentHTML(bodyHTML);
     await copyToClipboard(raw, bodyHTML);
     hideExportModal();
     showToast('已复制富文本，可直接粘贴到 WPS 中');
@@ -4179,7 +4270,7 @@ async function embedImagesInHTML(html) {
 
 async function getStyledHTMLWithImages() {
     const html = getStyledHTML();
-    return await embedImagesInHTML(html);
+    return normalizeExportHTML(await embedImagesInHTML(html));
 }
 
 // ========== 工具函数 ==========
@@ -5441,6 +5532,7 @@ async function copyPreviewText() {
     var temp = document.createElement('div');
     temp.innerHTML = html;
     applyInlineStyles(temp);
+    applyExportMediaConstraints(temp);
 
     // 包裹容器样式
     var wrappedHTML = '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Helvetica Neue\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif;max-width:100%;color:#333;font-size:15px;line-height:2;">' + temp.innerHTML + '</div>';
@@ -5467,6 +5559,7 @@ async function copyPreviewWechatNoSvg() {
     try { html = await embedImagesInHTML(temp.innerHTML); } catch (e) {}
     temp.innerHTML = html;
     applyInlineStyles(temp);
+    applyExportMediaConstraints(temp);
 
     var wrappedHTML = '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Helvetica Neue\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif;max-width:100%;color:#333;font-size:15px;line-height:2;">' + temp.innerHTML + '</div>';
     await copyToClipboard(temp.innerText || '', wrappedHTML);
@@ -8302,6 +8395,7 @@ async function copyForWechat() {
     var temp = document.createElement('div');
     temp.innerHTML = html;
     applyInlineStyles(temp);
+    applyExportMediaConstraints(temp);
 
     // 包裹容器样式
     var wrappedHTML = '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Helvetica Neue\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif;max-width:100%;color:#333;font-size:15px;line-height:2;">' + temp.innerHTML + '</div>';
