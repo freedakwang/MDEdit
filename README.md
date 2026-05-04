@@ -122,9 +122,11 @@ In addition to quick actions, you can type any request directly in the input box
 MDEdit provides a floating **Command** button for natural language operations. After AI is configured, you can type requests such as "export PDF", "preview only", "open library", "insert table", or "open SVG editor" instead of selecting toolbar menus manually.
 
 - **Floating UI**: click the floating command button to open a compact command window.
+- **AI writing actions**: the floating window also includes the original AI panel actions: create, continue, polish, summary, translate, fix grammar, expand, outline, and chart.
 - **Safe whitelist**: commands are mapped only to built-in, predefined actions; AI cannot execute arbitrary JavaScript.
 - **Confirmation**: file creation, saving, exporting, copying, inserting, and file-picker actions require explicit confirmation.
 - **Local fallback**: common commands are recognized locally first; if not matched, the configured AI is used to classify the intent as JSON.
+- **Result actions**: AI replies generated in the floating window can be inserted at the cursor, replace the editor, appended to the editor, or copied.
 
 Supported first-batch actions include saving, saving as, opening files, import/export, PDF export, rich-text/WeChat copy, view switching, panel swapping, dark mode, library, outline, version history, search, current-document find, AI settings, table insertion, SVG file insertion, SVG folding, and opening the SVG editor.
 
@@ -596,9 +598,11 @@ AI 面板顶部提供 10 个一键操作按钮：
 MDEdit 提供悬浮 **指令** 按钮，用于通过自然语言操作编辑器。AI 配置完成后，可以输入「导出 PDF」「只看预览」「打开资料库」「插入表格」「打开 SVG 编辑器」等请求，减少手动选择菜单。
 
 - **悬浮 UI**：点击右下角悬浮指令按钮，打开紧凑悬浮窗。
+- **AI 写作操作**：悬浮窗同时包含原 AI 面板的创建、续写、润色、摘要、翻译、修正、扩展、大纲和图表操作。
 - **安全白名单**：指令只会映射到内置预定义动作，AI 不能执行任意 JavaScript。
 - **执行确认**：新建、保存、导出、复制、插入、文件选择器等动作会先确认。
 - **本地兜底**：常用指令优先本地识别；未匹配时才调用已配置 AI 返回 JSON 意图。
+- **结果操作**：悬浮窗内生成的 AI 回复也可以插入到光标、替换编辑器、追加到编辑器或复制。
 
 首批支持动作包括保存、另存为、打开文件、导入导出、PDF 导出、富文本/公众号复制、视图切换、左右切换、深浅色模式、资料库、大纲、版本历史、文库搜索、当前文档查找、AI 设置、插入表格、插入 SVG 文件、折叠 SVG，以及打开 SVG 编辑器。
 

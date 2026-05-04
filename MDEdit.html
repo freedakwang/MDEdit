@@ -2129,12 +2129,24 @@
             <button onclick="hideAICommandWindow()">关闭</button>
         </div>
     </div>
-    <div class="ai-command-hint">输入“导出 PDF”“只看预览”“打开资料库”“插入表格”等指令。高风险操作会先确认。</div>
+    <div class="ai-command-hint">输入“导出 PDF”“只看预览”“打开资料库”“插入表格”等指令，也可以使用 AI 写作操作。高风险操作会先确认。</div>
     <div class="ai-command-quick">
         <button class="ai-command-chip" onclick="sendAICommandQuick('导出 PDF')">导出 PDF</button>
         <button class="ai-command-chip" onclick="sendAICommandQuick('只看预览')">只看预览</button>
         <button class="ai-command-chip" onclick="sendAICommandQuick('打开资料库')">打开资料库</button>
         <button class="ai-command-chip" onclick="sendAICommandQuick('打开 SVG 编辑器')">SVG 编辑器</button>
+    </div>
+    <div class="ai-command-quick">
+        <button class="ai-command-chip" onclick="startAICommandAIAction('create')">创建</button>
+        <button class="ai-command-chip" onclick="startAICommandAIAction('continue')">续写</button>
+        <button class="ai-command-chip" onclick="startAICommandAIAction('polish')">润色</button>
+        <button class="ai-command-chip" onclick="startAICommandAIAction('summary')">摘要</button>
+        <button class="ai-command-chip" onclick="startAICommandAIAction('translate_en')">译英</button>
+        <button class="ai-command-chip" onclick="startAICommandAIAction('translate_zh')">译中</button>
+        <button class="ai-command-chip" onclick="startAICommandAIAction('fix')">修正</button>
+        <button class="ai-command-chip" onclick="startAICommandAIAction('expand')">扩展</button>
+        <button class="ai-command-chip" onclick="startAICommandAIAction('outline')">大纲</button>
+        <button class="ai-command-chip" onclick="startAICommandAIAction('chart')">图表</button>
     </div>
     <div class="ai-command-messages" id="aiCommandMessages">
         <div class="ai-command-msg ai-command-msg-system">我可以用自然语言帮你调用常用菜单功能。</div>
@@ -6192,6 +6204,19 @@ var _elAICommandSendBtn = document.getElementById('aiCommandSendBtn');
 var aiCommandBusy = false;
 var aiCommandPending = {};
 
+const AI_COMMAND_AI_ACTIONS = {
+    create: { label: '创建文档' },
+    continue: { label: '续写内容' },
+    polish: { label: '润色优化' },
+    summary: { label: '生成摘要' },
+    translate_en: { label: '翻译为英文' },
+    translate_zh: { label: '翻译为中文' },
+    fix: { label: '修正语法' },
+    expand: { label: '扩展内容' },
+    outline: { label: '生成大纲' },
+    chart: { label: '生成图表' }
+};
+
 const AI_COMMAND_ACTIONS = {
     new_file: { label: '新建文档', confirm: '确定要新建文档吗？未保存内容会先触发原有确认。', execute: function() { return newFile(); } },
     open_file: { label: '打开文件', confirm: '将打开文件选择器，请选择要打开的 Markdown 文件。', execute: function() { openFile(); } },
@@ -6294,6 +6319,16 @@ function parseLocalAICommand(text) {
     if (has('插入表格', '加表格')) return { type: 'command', action: 'insert_table', reply: '插入 Markdown 表格。' };
     if (has('插入svg', '选择svg')) return { type: 'command', action: 'insert_svg_file', reply: '插入 SVG 文件。' };
     if (has('折叠svg', '展开svg', '折叠图片', '展开图片')) return { type: 'command', action: 'toggle_svg_fold', reply: '折叠或展开 SVG 和图片。' };
+    if (has('创建文档', '生成文档', '写一篇', '写个文档')) return { type: 'ai_action', action: 'create', params: { input: text }, reply: '创建 Markdown 文档。' };
+    if (has('续写', '继续写')) return { type: 'ai_action', action: 'continue', reply: '续写当前内容。' };
+    if (has('润色', '优化表达')) return { type: 'ai_action', action: 'polish', reply: '润色优化当前内容。' };
+    if (has('生成摘要', '总结文档', '总结一下')) return { type: 'ai_action', action: 'summary', reply: '生成当前文档摘要。' };
+    if (has('翻译英文', '译成英文', '翻成英文')) return { type: 'ai_action', action: 'translate_en', reply: '翻译当前内容为英文。' };
+    if (has('翻译中文', '译成中文', '翻成中文')) return { type: 'ai_action', action: 'translate_zh', reply: '翻译当前内容为中文。' };
+    if (has('修正语法', '修正错别字', '纠错')) return { type: 'ai_action', action: 'fix', reply: '修正语法和错别字。' };
+    if (has('扩展内容', '丰富内容')) return { type: 'ai_action', action: 'expand', reply: '扩展当前内容。' };
+    if (has('生成大纲', '写大纲')) return { type: 'ai_action', action: 'outline', params: { input: text }, reply: '生成文档大纲。' };
+    if (has('生成图表', '生成svg图', '画图表', '做图表')) return { type: 'ai_action', action: 'chart', params: { input: text }, reply: '生成 SVG 图表。' };
     return null;
 }
 
@@ -6313,6 +6348,7 @@ async function callAICommandRecognizer(text) {
     let fetchUrl = s.endpoint;
     if (s.corsProxy) fetchUrl = s.corsProxy + encodeURIComponent(s.endpoint);
     const actions = Object.keys(AI_COMMAND_ACTIONS).join(', ');
+    const aiActions = Object.keys(AI_COMMAND_AI_ACTIONS).join(', ');
     const resp = await fetch(fetchUrl, {
         method: 'POST',
         headers: {
@@ -6324,7 +6360,7 @@ async function callAICommandRecognizer(text) {
             messages: [
                 {
                     role: 'system',
-                    content: '你是 MDEdit 的自然语言操作识别器。只能从白名单 action 中选择：' + actions + '。如果用户想操作编辑器或菜单，返回 JSON：{"type":"command","action":"某个action","reply":"简短中文说明"}。如果不是操作指令，返回 JSON：{"type":"none","reply":"无法识别为可执行操作"}。禁止输出 JSON 以外的内容。'
+                    content: '你是 MDEdit 的自然语言操作识别器。功能命令只能从白名单 action 中选择：' + actions + '。AI 写作操作只能从 ai_action 中选择：' + aiActions + '。如果用户想操作编辑器或菜单，返回 JSON：{"type":"command","action":"某个action","reply":"简短中文说明"}。如果用户想让 AI 创建、续写、润色、摘要、翻译、修正、扩展、大纲或图表，返回 JSON：{"type":"ai_action","action":"某个ai_action","params":{"input":"用户补充要求"},"reply":"简短中文说明"}。如果不是可执行操作，返回 JSON：{"type":"none","reply":"无法识别为可执行操作"}。禁止输出 JSON 以外的内容。'
                 },
                 { role: 'user', content: text }
             ],
@@ -6350,13 +6386,25 @@ async function recognizeAICommand(text) {
         if (aiResult && aiResult.type === 'command' && AI_COMMAND_ACTIONS[aiResult.action]) {
             return aiResult;
         }
+        if (aiResult && aiResult.type === 'ai_action' && AI_COMMAND_AI_ACTIONS[aiResult.action]) {
+            return aiResult;
+        }
         return aiResult || { type: 'none', reply: '没有识别到可执行操作。' };
     } catch(e) {
         return { type: 'none', reply: 'AI 指令识别失败：' + (e && e.message ? e.message : '未知错误') };
     }
 }
 
-function renderAICommandResult(command) {
+async function renderAICommandResult(command, originalText) {
+    if (command && command.type === 'ai_action' && AI_COMMAND_AI_ACTIONS[command.action]) {
+        await executeAICommandAIAction(command.action, (command.params && command.params.input) || originalText || '', command.reply, { skipUser: true });
+        return;
+    }
+    if (command && command.type === 'none' && originalText && getAISettings().apiKey && getAISettings().endpoint) {
+        addAICommandMsg('assistant', '未匹配到功能指令，已转为 AI 自由对话。');
+        await startAICommandFreeChat(originalText, { skipUser: true });
+        return;
+    }
     if (!command || command.type !== 'command' || !AI_COMMAND_ACTIONS[command.action]) {
         addAICommandMsg('assistant', (command && command.reply) || '没有识别到可执行操作。');
         return;
@@ -6408,6 +6456,249 @@ function cancelAICommandById(id) {
     addAICommandMsg('system', '已取消操作');
 }
 
+function getAICommandActionLabel(type) {
+    return (AI_COMMAND_AI_ACTIONS[type] && AI_COMMAND_AI_ACTIONS[type].label) || type;
+}
+
+function createAICommandResponseMsg() {
+    const div = document.createElement('div');
+    div.className = 'ai-command-msg ai-command-msg-assistant';
+    div.setAttribute('data-raw', '');
+    div.textContent = '正在生成...';
+    _elAICommandMessages.appendChild(div);
+    _elAICommandMessages.scrollTop = _elAICommandMessages.scrollHeight;
+    return div;
+}
+
+function renderAICommandStreamingContent(div, content, thinking) {
+    div._rawContent = content || '';
+    div._thinkingContent = thinking || '';
+    if (thinking) {
+        div.innerHTML = '<details class="ai-thinking-block" open><summary>Thinking</summary><pre></pre></details><div class="ai-stream-content"></div>';
+        div.querySelector('.ai-thinking-block pre').textContent = thinking;
+        div.querySelector('.ai-stream-content').textContent = content || '';
+    } else {
+        div.textContent = content || '';
+    }
+}
+
+function finalizeAICommandMsg(div, rawContent, thinkingContent) {
+    div.setAttribute('data-raw', rawContent);
+    let thinkingHTML = '';
+    if (thinkingContent) {
+        thinkingHTML = '<details class="ai-thinking-block"><summary>Thinking</summary><pre>' + escapeHTML(thinkingContent) + '</pre></details>';
+    }
+    if (typeof marked !== 'undefined') {
+        div.innerHTML = thinkingHTML + renderMarkdownHTML(rawContent);
+        div.style.whiteSpace = '';
+    } else if (thinkingHTML) {
+        div.innerHTML = thinkingHTML + '<div>' + escapeHTML(rawContent) + '</div>';
+        div.style.whiteSpace = '';
+    }
+    const actions = document.createElement('div');
+    actions.className = 'ai-command-actions';
+    actions.innerHTML =
+        '<button onclick="aiCommandInsertAtCursor(this)">插入到光标</button>' +
+        '<button onclick="aiCommandReplaceEditor(this)">替换编辑器</button>' +
+        '<button onclick="aiCommandAppendEditor(this)">追加到编辑器</button>' +
+        '<button onclick="aiCommandCopyContent(this)">复制内容</button>';
+    div.appendChild(actions);
+    enhanceMarkdownDynamicBlocks(div);
+    _elAICommandMessages.scrollTop = _elAICommandMessages.scrollHeight;
+}
+
+function aiCommandGetRawFromBtn(btn) {
+    const msgDiv = btn.closest('[data-raw]');
+    return msgDiv ? msgDiv.getAttribute('data-raw') || '' : '';
+}
+
+function aiCommandInsertAtCursor(btn) {
+    const raw = aiCommandGetRawFromBtn(btn);
+    if (!raw) return;
+    const pos = editor.selectionStart || 0;
+    const before = editor.value.substring(0, pos);
+    const after = editor.value.substring(pos);
+    const newline = before.length > 0 && !before.endsWith('\n') ? '\n' : '';
+    const newlineAfter = after.length > 0 && !after.startsWith('\n') ? '\n' : '';
+    editor.value = before + newline + raw + newlineAfter + after;
+    const newPos = before.length + newline.length + raw.length;
+    editor.selectionStart = editor.selectionEnd = newPos;
+    editor.focus();
+    updatePreview();
+    updateExportState();
+    showToast('已插入到光标位置');
+}
+
+function aiCommandReplaceEditor(btn) {
+    const raw = aiCommandGetRawFromBtn(btn);
+    if (!raw) return;
+    editor.value = raw;
+    updatePreview();
+    updateExportState();
+    showToast('已替换编辑器内容');
+}
+
+function aiCommandAppendEditor(btn) {
+    const raw = aiCommandGetRawFromBtn(btn);
+    if (!raw) return;
+    editor.value = editor.value.trim() ? editor.value + '\n\n' + raw : raw;
+    updatePreview();
+    updateExportState();
+    showToast('已追加到编辑器');
+}
+
+function aiCommandCopyContent(btn) {
+    const raw = aiCommandGetRawFromBtn(btn);
+    if (!raw) return;
+    copyToClipboard(raw).then(function() {
+        btn.textContent = '已复制';
+        setTimeout(function() { btn.textContent = '复制内容'; }, 1500);
+    });
+}
+
+async function doAICommandAISend(userPrompt) {
+    const s = getAISettings();
+    const messages = await buildSmartContext(userPrompt, s);
+    aiChatHistory.push({ role: 'user', content: userPrompt });
+    const responseDiv = createAICommandResponseMsg();
+    try {
+        let fetchUrl = s.endpoint;
+        if (s.corsProxy) fetchUrl = s.corsProxy + encodeURIComponent(s.endpoint);
+        const resp = await fetch(fetchUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + s.apiKey
+            },
+            body: JSON.stringify(buildAIRequestBody(s, messages))
+        });
+        if (!resp.ok) {
+            let errMsg = 'HTTP ' + resp.status;
+            try {
+                const errBody = await resp.json();
+                errMsg = errBody.error?.message || errBody.message || errMsg;
+            } catch(e) {}
+            throw new Error(errMsg);
+        }
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = '';
+        let thinkingContent = '';
+        let buffer = '';
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || !trimmed.startsWith('data:')) continue;
+                const data = trimmed.slice(5).trim();
+                if (data === '[DONE]') continue;
+                try {
+                    const json = JSON.parse(data);
+                    const delta = json.choices?.[0]?.delta?.content;
+                    const thinkingDelta = s.thinkingEnabled ? getAIThinkingDelta(json) : '';
+                    if (delta || thinkingDelta) {
+                        if (thinkingDelta) thinkingContent += thinkingDelta;
+                        if (delta) fullContent += delta;
+                        renderAICommandStreamingContent(responseDiv, fullContent, thinkingContent);
+                        _elAICommandMessages.scrollTop = _elAICommandMessages.scrollHeight;
+                    }
+                } catch(e) {}
+            }
+        }
+        aiChatHistory.push({ role: 'assistant', content: fullContent });
+        saveMessageToDB({ role: 'assistant', content: fullContent });
+        finalizeAICommandMsg(responseDiv, fullContent, thinkingContent);
+        if (aiChatHistory.length % 10 === 0) {
+            generateAISummary().catch(function(e) { console.warn('自动摘要失败:', e); });
+        }
+    } catch (err) {
+        responseDiv.remove();
+        addAICommandMsg('assistant', 'AI 请求失败：' + (err && err.message ? err.message : '未知错误'));
+        console.error('AI 悬浮指令请求错误:', err);
+    }
+}
+
+function buildAICommandFreePrompt(text) {
+    const s = getAISettings();
+    const editorContent = editor.value.trim();
+    if (s.includeEditorContext !== false && editorContent) {
+        return '当前编辑器中的 Markdown 文档内容如下：\n```markdown\n' + editorContent + '\n```\n\n用户请求：' + text + '\n\n请直接输出 Markdown 内容，不要用代码块包裹（除非内容本身是代码）。';
+    }
+    return text + '\n\n请用 Markdown 格式回复，直接输出内容，不要用代码块包裹整个回复。';
+}
+
+async function startAICommandFreeChat(text, options) {
+    const s = getAISettings();
+    if (!s.apiKey || !s.endpoint) {
+        addAICommandMsg('assistant', '请先配置 AI 后再使用悬浮窗 AI 写作功能。');
+        showAISettings();
+        return;
+    }
+    const fullPrompt = buildAICommandFreePrompt(text);
+    if (!options || !options.skipUser) addAICommandMsg('user', text);
+    saveMessageToDB({ role: 'user', content: fullPrompt, displayContent: text });
+    await doAICommandAISend(fullPrompt);
+}
+
+function buildAICommandActionPrompt(type, inputText) {
+    const config = AI_QUICK_PROMPTS[type];
+    if (!config) return null;
+    if (config.useEditor) {
+        const scope = getAIEditorScope();
+        if (!scope.content) {
+            addAICommandMsg('assistant', '编辑器内容为空，请先输入或打开文档。');
+            return null;
+        }
+        return {
+            prompt: buildAIEditorPrompt(config, scope),
+            display: '[AI操作] ' + getAICommandActionLabel(type) + (scope.selected ? '（选中文本）' : '')
+        };
+    }
+    return {
+        prompt: config.prompt + '\n\n' + (inputText || ''),
+        display: '[AI操作] ' + getAICommandActionLabel(type) + (inputText ? '：' + inputText : '')
+    };
+}
+
+async function executeAICommandAIAction(type, inputText, reply, options) {
+    const config = AI_QUICK_PROMPTS[type];
+    if (!config) return;
+    if (config.needInput && !inputText) {
+        _elAICommandInput.setAttribute('data-pending-ai-action', type);
+        _elAICommandInput.placeholder = config.inputHint || '请输入补充要求...';
+        _elAICommandInput.focus();
+        addAICommandMsg('system', '请输入「' + getAICommandActionLabel(type) + '」的具体要求。');
+        return;
+    }
+    const s = getAISettings();
+    if (!s.apiKey || !s.endpoint) {
+        addAICommandMsg('assistant', '请先配置 AI 后再使用「' + getAICommandActionLabel(type) + '」。');
+        showAISettings();
+        return;
+    }
+    const payload = buildAICommandActionPrompt(type, inputText);
+    if (!payload) return;
+    if (reply) addAICommandMsg('assistant', '识别到 AI 操作：' + getAICommandActionLabel(type) + '\n' + reply);
+    if (!options || !options.skipUser) addAICommandMsg('user', payload.display);
+    saveMessageToDB({ role: 'user', content: payload.prompt, displayContent: payload.display });
+    await doAICommandAISend(payload.prompt);
+}
+
+async function startAICommandAIAction(type, inputText) {
+    if (!_elAICommandWindow.classList.contains('active')) _elAICommandWindow.classList.add('active');
+    if (aiCommandBusy) return;
+    setAICommandBusy(true);
+    try {
+        await executeAICommandAIAction(type, inputText || '');
+    } finally {
+        setAICommandBusy(false);
+    }
+}
+
 async function runAICommandText(text) {
     const value = (text || '').trim();
     if (!value || aiCommandBusy) return;
@@ -6415,7 +6706,7 @@ async function runAICommandText(text) {
     setAICommandBusy(true);
     try {
         const command = await recognizeAICommand(value);
-        renderAICommandResult(command);
+        await renderAICommandResult(command, value);
     } finally {
         setAICommandBusy(false);
     }
@@ -6424,6 +6715,15 @@ async function runAICommandText(text) {
 function sendAICommand() {
     const text = _elAICommandInput.value.trim();
     if (!text) return;
+    const pendingAIAction = _elAICommandInput.getAttribute('data-pending-ai-action');
+    if (pendingAIAction) {
+        _elAICommandInput.removeAttribute('data-pending-ai-action');
+        _elAICommandInput.placeholder = '例如：帮我导出 PDF...';
+        _elAICommandInput.value = '';
+        autoResizeAICommandInput(_elAICommandInput);
+        startAICommandAIAction(pendingAIAction, text);
+        return;
+    }
     _elAICommandInput.value = '';
     autoResizeAICommandInput(_elAICommandInput);
     runAICommandText(text);
