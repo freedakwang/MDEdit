@@ -1592,6 +1592,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .ai-command-title {
             display: flex;
@@ -1600,21 +1601,20 @@
             font-size: 14px;
             font-weight: 800;
             color: var(--text-primary);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         .ai-command-title svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; }
-        .ai-command-header-actions {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+        .ai-command-header-actions { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
         .ai-command-header-actions button {
-            border: none;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             border-radius: 8px;
-            background: transparent;
-            color: var(--text-secondary);
+            padding: 3px 5px;
             cursor: pointer;
-            padding: 5px 8px;
-            font-size: 12px;
+            font-size: 11px;
+            line-height: 1.3;
         }
         .ai-command-header-actions button:hover {
             background: var(--bg-secondary);
@@ -2125,6 +2125,9 @@
             自然语言操作
         </div>
         <div class="ai-command-header-actions">
+            <button onclick="newAICommandChat()">新对话</button>
+            <button onclick="showAICommandMemoryStatus()">记忆状态</button>
+            <button onclick="clearAICommandMemory()">清记忆</button>
             <button onclick="showAISettings()">设置</button>
             <button onclick="hideAICommandWindow()">关闭</button>
         </div>
@@ -6202,6 +6205,8 @@ var _elAICommandInput = document.getElementById('aiCommandInput');
 var _elAICommandMessages = document.getElementById('aiCommandMessages');
 var _elAICommandSendBtn = document.getElementById('aiCommandSendBtn');
 var aiCommandBusy = false;
+var aiCommandIsStreaming = false;
+var aiCommandAbortController = null;
 var aiCommandPending = {};
 
 const AI_COMMAND_AI_ACTIONS = {
@@ -6275,10 +6280,83 @@ function addAICommandMsg(role, text) {
 
 function setAICommandBusy(busy) {
     aiCommandBusy = busy;
+    if (aiCommandIsStreaming) return;
     _elAICommandSendBtn.disabled = busy;
+    _elAICommandSendBtn.classList.remove('ai-stop-btn');
+    _elAICommandSendBtn.onclick = function() { sendAICommand(); };
+    _elAICommandSendBtn.title = '执行指令';
     _elAICommandSendBtn.innerHTML = busy
         ? '<svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>'
         : '<svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>';
+}
+
+function setAICommandStreaming(streaming) {
+    aiCommandIsStreaming = streaming;
+    aiCommandBusy = streaming;
+    if (streaming) {
+        _elAICommandSendBtn.disabled = false;
+        _elAICommandSendBtn.classList.add('ai-stop-btn');
+        _elAICommandSendBtn.innerHTML = '<svg viewBox="0 0 24 24" style="fill:currentColor;stroke:none;"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+        _elAICommandSendBtn.onclick = function() { stopAICommandStream(); };
+        _elAICommandSendBtn.title = '停止生成';
+    } else {
+        _elAICommandSendBtn.disabled = false;
+        _elAICommandSendBtn.classList.remove('ai-stop-btn');
+        _elAICommandSendBtn.innerHTML = '<svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>';
+        _elAICommandSendBtn.onclick = function() { sendAICommand(); };
+        _elAICommandSendBtn.title = '执行指令';
+    }
+}
+
+function stopAICommandStream() {
+    if (aiCommandAbortController) {
+        aiCommandAbortController.abort();
+    }
+}
+
+function newAICommandChat() {
+    newAIChat();
+    _elAICommandMessages.innerHTML = '<div class="ai-command-msg ai-command-msg-system">已开始新对话。工作记忆已重置，摘要记忆和归档记忆会继续保留。</div>';
+}
+
+async function countAIMemoryMessages() {
+    const db = await initAIMemoryDB();
+    if (!db) return 0;
+    return new Promise(function(resolve) {
+        try {
+            const tx = db.transaction('messages', 'readonly');
+            const store = tx.objectStore('messages');
+            const req = store.count();
+            req.onsuccess = function(e) { resolve(e.target.result || 0); };
+            req.onerror = function() { resolve(0); };
+        } catch(e) {
+            resolve(0);
+        }
+    });
+}
+
+async function showAICommandMemoryStatus() {
+    const s = getAISettings();
+    const archivedCount = await countAIMemoryMessages();
+    const recentEnabled = s.includeRecentMemory !== false;
+    const summaryEnabled = s.includeSummaryMemory !== false;
+    const archiveEnabled = s.includeArchiveMemory !== false;
+    const editorEnabled = s.includeEditorContext !== false;
+    const lines = [
+        'AI 记忆状态：',
+        '工作记忆：' + (recentEnabled ? '开启，当前会话 ' + aiChatHistory.length + ' 条' : '已关闭发送'),
+        '摘要记忆：' + (summaryEnabled ? (aiSummary ? '开启，已有摘要' : '开启，暂无摘要') : '已关闭发送'),
+        '归档记忆：' + (archiveEnabled ? '开启，已归档 ' + archivedCount + ' 条消息' : '已关闭检索'),
+        '编辑器上下文：' + (editorEnabled ? '开启' : '已关闭')
+    ];
+    addAICommandMsg('system', lines.join('\n'));
+}
+
+async function clearAICommandMemory() {
+    const cleared = await clearAIMemory();
+    if (cleared) {
+        _elAICommandMessages.innerHTML = '<div class="ai-command-msg ai-command-msg-system">所有 AI 记忆已清除。</div>';
+    }
 }
 
 function normalizeAICommandText(text) {
@@ -6561,7 +6639,9 @@ async function doAICommandAISend(userPrompt) {
     const messages = await buildSmartContext(userPrompt, s);
     aiChatHistory.push({ role: 'user', content: userPrompt });
     const responseDiv = createAICommandResponseMsg();
+    setAICommandStreaming(true);
     try {
+        aiCommandAbortController = new AbortController();
         let fetchUrl = s.endpoint;
         if (s.corsProxy) fetchUrl = s.corsProxy + encodeURIComponent(s.endpoint);
         const resp = await fetch(fetchUrl, {
@@ -6570,7 +6650,8 @@ async function doAICommandAISend(userPrompt) {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + s.apiKey
             },
-            body: JSON.stringify(buildAIRequestBody(s, messages))
+            body: JSON.stringify(buildAIRequestBody(s, messages)),
+            signal: aiCommandAbortController.signal
         });
         if (!resp.ok) {
             let errMsg = 'HTTP ' + resp.status;
@@ -6609,6 +6690,8 @@ async function doAICommandAISend(userPrompt) {
                 } catch(e) {}
             }
         }
+        responseDiv._finalized = true;
+        renderAICommandStreamingContent(responseDiv, fullContent, thinkingContent);
         aiChatHistory.push({ role: 'assistant', content: fullContent });
         saveMessageToDB({ role: 'assistant', content: fullContent });
         finalizeAICommandMsg(responseDiv, fullContent, thinkingContent);
@@ -6616,9 +6699,27 @@ async function doAICommandAISend(userPrompt) {
             generateAISummary().catch(function(e) { console.warn('自动摘要失败:', e); });
         }
     } catch (err) {
-        responseDiv.remove();
-        addAICommandMsg('assistant', 'AI 请求失败：' + (err && err.message ? err.message : '未知错误'));
-        console.error('AI 悬浮指令请求错误:', err);
+        if (err.name === 'AbortError') {
+            responseDiv._finalized = true;
+            const partial = responseDiv._rawContent || '';
+            const partialThinking = responseDiv._thinkingContent || '';
+            if (partial || partialThinking) {
+                aiChatHistory.push({ role: 'assistant', content: partial });
+                saveMessageToDB({ role: 'assistant', content: partial });
+                finalizeAICommandMsg(responseDiv, partial, partialThinking);
+                addAICommandMsg('system', '生成已中止（部分内容已保留）');
+            } else {
+                responseDiv.remove();
+                addAICommandMsg('system', '生成已中止');
+            }
+        } else {
+            responseDiv.remove();
+            addAICommandMsg('assistant', 'AI 请求失败：' + (err && err.message ? err.message : '未知错误'));
+            console.error('AI 悬浮指令请求错误:', err);
+        }
+    } finally {
+        setAICommandStreaming(false);
+        aiCommandAbortController = null;
     }
 }
 
@@ -6713,6 +6814,10 @@ async function runAICommandText(text) {
 }
 
 function sendAICommand() {
+    if (aiCommandIsStreaming) {
+        stopAICommandStream();
+        return;
+    }
     const text = _elAICommandInput.value.trim();
     if (!text) return;
     const pendingAIAction = _elAICommandInput.getAttribute('data-pending-ai-action');
@@ -6755,7 +6860,7 @@ function newAIChat() {
 }
 
 async function clearAIMemory() {
-    if (!await showConfirm('确定清除所有 AI 对话记忆？包括所有历史对话和摘要，此操作不可恢复。', { danger: true, confirmText: '清除' })) return;
+    if (!await showConfirm('确定清除所有 AI 对话记忆？包括所有历史对话和摘要，此操作不可恢复。', { danger: true, confirmText: '清除' })) return false;
     aiChatHistory = [];
     aiDisplayMessages = [];
     aiSummary = '';
@@ -6772,6 +6877,7 @@ async function clearAIMemory() {
     try { localStorage.removeItem(AI_MEMORY_KEY); } catch(e) {}
     _elAiMessages.innerHTML = '<div class="ai-msg ai-msg-system">所有记忆已清除。</div>';
     showToast('AI 记忆已清除');
+    return true;
 }
 
 // ---------- AI 记忆系统（三层：工作记忆 + 摘要记忆 + 归档记忆） ----------
