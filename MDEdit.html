@@ -1781,6 +1781,13 @@
 
     <div class="divider"></div>
 
+    <button onclick="openSvgEditor()" title="打开 SVG 编辑器处理 SVG 文件">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8v8H8z"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>
+        SVG编辑
+    </button>
+
+    <div class="divider"></div>
+
     <div class="view-toggle">
         <button class="active" id="btnBoth" onclick="setView('both')">双栏</button>
         <button id="btnEditor" onclick="setView('editor-only')">编辑</button>
@@ -2319,6 +2326,11 @@ document.addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeToolbarDropdowns();
 });
+
+function openSvgEditor() {
+    const win = window.open('https://svgedit.all8ai.top/', '_blank', 'noopener,noreferrer');
+    if (!win) showAlert('浏览器阻止了 SVG 编辑器窗口，请允许弹出窗口后重试。');
+}
 
 // ========== localStorage 安全写入 ==========
 function safeLocalStorageSet(key, value) {

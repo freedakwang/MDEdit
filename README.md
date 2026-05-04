@@ -150,7 +150,7 @@ Four action buttons appear below each AI response:
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  Toolbar: In | Out | Manage | View | Theme │
+│  Toolbar: In | Out | Manage | SVG Edit | View | Theme │
 ├────────────────────┬─┬───────────────────────────────┤
 │                    │ │                               │
 │   Editor Panel     │↔│     Preview Panel             │
@@ -166,6 +166,7 @@ Four action buttons appear below each AI response:
 | Action | Description |
 |--------|-------------|
 | **Toolbar Dropdowns** | The top toolbar uses **In**, **Out**, and **Manage** dropdown menus for clearer navigation |
+| **SVG Edit** | Opens `https://svgedit.all8ai.top/` in a new window to process SVG files |
 | **Drag Divider** | Drag the center divider to freely adjust the editor/preview width ratio |
 | **Double-click Divider** | Double-click the divider to reset panel widths to 50:50 |
 | **Toggle Button** | The "Toggle" button in the toolbar swaps editor and preview positions |
@@ -611,7 +612,7 @@ AI 助手采用三层记忆架构，智能管理对话上下文：
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  工具栏：输入 | 输出 | 管理 | 视图 | 主题 │
+│  工具栏：输入 | 输出 | 管理 | SVG编辑 | 视图 | 主题 │
 ├────────────────────┬─┬───────────────────────────┤
 │                    │ │                           │
 │     编辑器面板      │↔│     预览面板              │
@@ -627,6 +628,7 @@ AI 助手采用三层记忆架构，智能管理对话上下文：
 | 操作 | 说明 |
 |------|------|
 | **工具栏下拉菜单** | 顶部工具栏使用 **输入**、**输出**、**管理** 下拉菜单，入口更清晰 |
+| **SVG编辑** | 在新窗口打开 `https://svgedit.all8ai.top/`，用于处理 SVG 文件 |
 | **拖拽分割条** | 拖动中间分割线可自由调整编辑器和预览的宽度比例 |
 | **双击分割条** | 双击分割线可将面板宽度重置为 50:50 |
 | **切换按钮** | 工具栏「切换」按钮可交换编辑器和预览的左右位置 |
