@@ -621,6 +621,121 @@
         .main.preview-only .editor-panel { display: none; }
         .main.preview-only .resizer { display: none; }
 
+        /* ========== Cmd+K 快捷命令面板 ========== */
+        .cmd-palette-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 200;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: min(20vh, 160px);
+        }
+        .cmd-palette-overlay.active { display: flex; }
+        .cmd-palette {
+            background: #fff;
+            border-radius: 14px;
+            width: 520px;
+            max-width: 92vw;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06);
+            overflow: hidden;
+            max-height: min(60vh, 480px);
+            display: flex;
+            flex-direction: column;
+        }
+        html.dark .cmd-palette {
+            background: #1e293b;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+        }
+        .cmd-palette-input-wrap {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 10px;
+        }
+        html.dark .cmd-palette-input-wrap { border-bottom-color: #334155; }
+        .cmd-palette-input-wrap svg {
+            width: 18px; height: 18px;
+            stroke: #94a3b8;
+            flex-shrink: 0;
+        }
+        .cmd-palette-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            background: transparent;
+            color: #0f172a;
+            font-family: inherit;
+        }
+        html.dark .cmd-palette-input { color: #e2e8f0; }
+        .cmd-palette-input::placeholder { color: #94a3b8; }
+        .cmd-palette-kbd {
+            font-size: 11px;
+            color: #94a3b8;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+            font-family: inherit;
+            flex-shrink: 0;
+        }
+        html.dark .cmd-palette-kbd { background: #334155; border-color: #475569; color: #94a3b8; }
+        .cmd-palette-list {
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+            padding: 6px;
+        }
+        .cmd-palette-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #334155;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        html.dark .cmd-palette-item { color: #cbd5e1; }
+        .cmd-palette-item:hover,
+        .cmd-palette-item.selected {
+            background: #f1f5f9;
+        }
+        html.dark .cmd-palette-item:hover,
+        html.dark .cmd-palette-item.selected {
+            background: #334155;
+        }
+        .cmd-palette-item .cmd-icon {
+            width: 16px; height: 16px;
+            stroke: #64748b;
+            flex-shrink: 0;
+        }
+        html.dark .cmd-palette-item .cmd-icon { stroke: #94a3b8; }
+        .cmd-palette-item .cmd-shortcut {
+            margin-left: auto;
+            font-size: 11px;
+            color: #94a3b8;
+            flex-shrink: 0;
+        }
+        .cmd-palette-empty {
+            padding: 24px 16px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+        .cmd-palette-group {
+            padding: 6px 12px 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
         /* ========== 导出弹窗 ========== */
         .modal-overlay {
             display: none;
@@ -2316,7 +2431,7 @@
             body { height: auto; overflow: visible; background: #fff; }
             .toolbar, .status-bar, .editor-panel, .panel-header,
             .modal-overlay, .drop-overlay, .toast, .history-panel, .ai-panel, .ai-settings-modal, .svg-context-menu,
-            .ai-command-float-btn, .ai-command-window,
+            .ai-command-float-btn, .ai-command-window, .cmd-palette-overlay,
             .outline-panel, .search-panel, .doc-find-panel { display: none !important; }
             .main { display: block !important; overflow: visible !important; }
             .main.editor-only .preview-panel,
@@ -2548,6 +2663,18 @@
         <div class="ai-insert-options" title="开启后，使用下方「插入到光标 / 替换 / 追加」时，将 Markdown 中的 SVG 转为 JPG 再写入（矢量可编辑性会丢失）">
             <label><input type="checkbox" id="aiInsertSvgAsJpeg">插入 AI 回复时把 SVG 转为 JPG</label>
         </div>
+    </div>
+</div>
+
+<!-- Cmd+K 快捷命令面板 -->
+<div class="cmd-palette-overlay" id="cmdPaletteOverlay">
+    <div class="cmd-palette">
+        <div class="cmd-palette-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="cmd-palette-input" id="cmdPaletteInput" type="text" placeholder="输入命令名称..." autocomplete="off" spellcheck="false">
+            <kbd class="cmd-palette-kbd">ESC</kbd>
+        </div>
+        <div class="cmd-palette-list" id="cmdPaletteList"></div>
     </div>
 </div>
 
@@ -7345,6 +7472,157 @@ document.addEventListener('keydown', function(e) {
         }
         if (_elSearchPanel.classList.contains('active')) {
             _elSearchPanel.classList.remove('active');
+        }
+    }
+});
+
+// ========== Cmd+K 快捷命令面板 ==========
+var _elCmdOverlay = document.getElementById('cmdPaletteOverlay');
+var _elCmdInput = document.getElementById('cmdPaletteInput');
+var _elCmdList = document.getElementById('cmdPaletteList');
+var _cmdSelectedIndex = 0;
+var _cmdFilteredItems = [];
+
+var CMD_PALETTE_ITEMS = [
+    { group: '文件', label: '新建文档', action: function() { newFile(); }, shortcut: '' },
+    { group: '文件', label: '打开文件', action: function() { openFile(); }, shortcut: '' },
+    { group: '文件', label: '保存', action: function() { saveFile(); }, shortcut: '⌘S' },
+    { group: '文件', label: '另存为', action: function() { saveAsFile(); }, shortcut: '' },
+    { group: '文件', label: '导入文件', action: function() { showImportModal(); }, shortcut: '' },
+    { group: '文件', label: '导出文档', action: function() { showExportModal(); }, shortcut: '' },
+    { group: '文件', label: '设置图片目录', action: function() { setImageBasePath(); }, shortcut: '' },
+    { group: '视图', label: '双栏视图', action: function() { setView('both'); }, shortcut: '' },
+    { group: '视图', label: '纯编辑模式', action: function() { setView('editor-only'); }, shortcut: '' },
+    { group: '视图', label: '纯预览模式', action: function() { setView('preview-only'); }, shortcut: '' },
+    { group: '视图', label: '切换左右面板', action: function() { swapPanels(); }, shortcut: '' },
+    { group: '视图', label: '文档大纲', action: function() { toggleOutline(); }, shortcut: '' },
+    { group: '视图', label: '版本历史', action: function() { toggleVersionPanel(); }, shortcut: '' },
+    { group: '视图', label: '切换暗色/亮色模式', action: function() { toggleDarkMode(); }, shortcut: '' },
+    { group: '查找', label: '文内查找/替换', action: function() { showDocFind(); }, shortcut: '⌘F' },
+    { group: '查找', label: '全库搜索', action: function() { toggleSearch(); }, shortcut: '⌘⇧F' },
+    { group: '查找', label: '资料库', action: function() { toggleLibrary(); }, shortcut: '' },
+    { group: '格式', label: '插入标题', action: function() { insertFormat('heading'); }, shortcut: '' },
+    { group: '格式', label: '粗体', action: function() { insertFormat('bold'); }, shortcut: '⌘B' },
+    { group: '格式', label: '斜体', action: function() { insertFormat('italic'); }, shortcut: '⌘I' },
+    { group: '格式', label: '删除线', action: function() { insertFormat('strikethrough'); }, shortcut: '' },
+    { group: '格式', label: '行内代码', action: function() { insertFormat('code'); }, shortcut: '' },
+    { group: '格式', label: '代码块', action: function() { insertFormat('codeblock'); }, shortcut: '' },
+    { group: '格式', label: '插入链接', action: function() { insertFormat('link'); }, shortcut: '' },
+    { group: '格式', label: '插入图片', action: function() { insertFormat('image'); }, shortcut: '' },
+    { group: '格式', label: '无序列表', action: function() { insertFormat('ul'); }, shortcut: '' },
+    { group: '格式', label: '有序列表', action: function() { insertFormat('ol'); }, shortcut: '' },
+    { group: '格式', label: '引用', action: function() { insertFormat('quote'); }, shortcut: '' },
+    { group: '格式', label: '表格', action: function() { insertFormat('table'); }, shortcut: '' },
+    { group: '格式', label: '分割线', action: function() { insertFormat('hr'); }, shortcut: '' },
+    { group: '格式', label: '任务列表', action: function() { insertFormat('tasklist'); }, shortcut: '' },
+    { group: '格式', label: '折叠/展开 SVG 图表', action: function() { toggleSvgFold(); }, shortcut: '' },
+    { group: '工具', label: 'SVG 编辑器', action: function() { window.open('https://svgedit.all8ai.top/', '_blank', 'noopener,noreferrer'); }, shortcut: '' },
+    { group: '工具', label: 'AI 助手设置', action: function() { showAISettings(); }, shortcut: '' },
+    { group: '工具', label: 'AI 自然语言指令', action: function() { toggleAICommandWindow(); }, shortcut: '' },
+    { group: '工具', label: '加入支持群', action: function() { showGroupModal(); }, shortcut: '' },
+    { group: '导出', label: '导出为 HTML', action: function() { exportHTML(); }, shortcut: '' },
+    { group: '导出', label: '导出为动态 HTML', action: function() { exportDynamicHTML(); }, shortcut: '' },
+    { group: '导出', label: '导出为 Word', action: function() { exportDoc(); }, shortcut: '' },
+    { group: '导出', label: '导出为 PDF', action: function() { exportPDF(); }, shortcut: '' },
+    { group: '导出', label: '复制富文本', action: function() { copyRichText(); }, shortcut: '' },
+    { group: '导出', label: '复制公众号格式', action: function() { copyPreviewAsRichText(); }, shortcut: '' }
+];
+
+function showCmdPalette() {
+    _elCmdOverlay.classList.add('active');
+    _elCmdInput.value = '';
+    _cmdSelectedIndex = 0;
+    renderCmdPaletteList('');
+    setTimeout(function() { _elCmdInput.focus(); }, 50);
+}
+
+function hideCmdPalette() {
+    _elCmdOverlay.classList.remove('active');
+    _elCmdInput.value = '';
+}
+
+function cmdPaletteMatch(item, query) {
+    if (!query) return true;
+    var q = query.toLowerCase();
+    return item.label.toLowerCase().indexOf(q) !== -1 || item.group.toLowerCase().indexOf(q) !== -1;
+}
+
+function renderCmdPaletteList(query) {
+    _cmdFilteredItems = CMD_PALETTE_ITEMS.filter(function(item) { return cmdPaletteMatch(item, query); });
+    if (_cmdSelectedIndex >= _cmdFilteredItems.length) _cmdSelectedIndex = Math.max(0, _cmdFilteredItems.length - 1);
+
+    if (!_cmdFilteredItems.length) {
+        _elCmdList.innerHTML = '<div class="cmd-palette-empty">没有匹配的命令</div>';
+        return;
+    }
+
+    var html = '';
+    var lastGroup = '';
+    _cmdFilteredItems.forEach(function(item, idx) {
+        if (item.group !== lastGroup) {
+            html += '<div class="cmd-palette-group">' + item.group + '</div>';
+            lastGroup = item.group;
+        }
+        var cls = 'cmd-palette-item' + (idx === _cmdSelectedIndex ? ' selected' : '');
+        html += '<div class="' + cls + '" data-cmd-index="' + idx + '">';
+        html += '<span>' + escapeHTML(item.label) + '</span>';
+        if (item.shortcut) html += '<span class="cmd-shortcut">' + item.shortcut + '</span>';
+        html += '</div>';
+    });
+    _elCmdList.innerHTML = html;
+
+    var selectedEl = _elCmdList.querySelector('.selected');
+    if (selectedEl) selectedEl.scrollIntoView({ block: 'nearest' });
+}
+
+function executeCmdPaletteItem(index) {
+    if (index < 0 || index >= _cmdFilteredItems.length) return;
+    var item = _cmdFilteredItems[index];
+    hideCmdPalette();
+    setTimeout(function() { item.action(); }, 60);
+}
+
+_elCmdInput.addEventListener('input', function() {
+    _cmdSelectedIndex = 0;
+    renderCmdPaletteList(this.value.trim());
+});
+
+_elCmdInput.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        _cmdSelectedIndex = Math.min(_cmdSelectedIndex + 1, _cmdFilteredItems.length - 1);
+        renderCmdPaletteList(this.value.trim());
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        _cmdSelectedIndex = Math.max(_cmdSelectedIndex - 1, 0);
+        renderCmdPaletteList(this.value.trim());
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        executeCmdPaletteItem(_cmdSelectedIndex);
+    } else if (e.key === 'Escape') {
+        e.preventDefault();
+        hideCmdPalette();
+    }
+});
+
+_elCmdList.addEventListener('click', function(e) {
+    var el = e.target.closest('.cmd-palette-item');
+    if (!el) return;
+    var idx = parseInt(el.getAttribute('data-cmd-index'), 10);
+    if (!isNaN(idx)) executeCmdPaletteItem(idx);
+});
+
+_elCmdOverlay.addEventListener('click', function(e) {
+    if (e.target === _elCmdOverlay) hideCmdPalette();
+});
+
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        if (_elCmdOverlay.classList.contains('active')) {
+            hideCmdPalette();
+        } else {
+            showCmdPalette();
         }
     }
 });
