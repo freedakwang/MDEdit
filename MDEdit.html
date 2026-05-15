@@ -4342,7 +4342,7 @@ function getDynamicStyledHTML() {
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
 <title>${escapeHTML(title)}</title>
 <style>
 :root {
@@ -4357,10 +4357,15 @@ function getDynamicStyledHTML() {
     --shadow: 0 24px 60px rgba(15,23,42,0.2);
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
 body {
     margin: 0;
     min-height: 100vh;
+    overflow-x: hidden;
+    max-width: 100vw;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background:
         radial-gradient(circle at top left, rgba(139,92,246,0.28), transparent 28%),
@@ -4605,6 +4610,8 @@ body {
     background: linear-gradient(180deg, #0f172a, #111827);
     color: #e2e8f0;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    max-width: 100%;
+    word-break: break-all;
 }
 .article-body pre code {
     padding: 0;
@@ -4627,12 +4634,19 @@ body {
     background: rgba(255,255,255,0.2);
     transform: translateY(-1px);
 }
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    margin: 0 0 1.15em;
+}
 .article-body table {
     width: 100%;
     border-collapse: collapse;
-    overflow: hidden;
     border-radius: 18px;
-    border: 1px solid var(--line);
+    margin: 0;
 }
 .article-body th,
 .article-body td {
@@ -4753,27 +4767,26 @@ body {
         padding: 18px 14px;
     }
     .article-body {
-        font-size: 15px;
+        font-size: 16px;
         line-height: 1.8;
     }
-    .article-body h1 { font-size: 1.6em; }
-    .article-body h2 { font-size: 1.35em; }
+    .article-body h1 { font-size: 1.5em; }
+    .article-body h2 { font-size: 1.3em; }
     .article-body h3 { font-size: 1.15em; }
     .article-body h2::before,
     .article-body h3::before {
         left: -8px;
         width: 3px;
     }
+    .table-wrap {
+        border-radius: 14px;
+    }
     .article-body table {
-        display: block;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        font-size: 14px;
+        font-size: 15px;
     }
     .article-body th,
     .article-body td {
         padding: 10px 12px;
-        white-space: nowrap;
     }
     .article-body blockquote {
         padding: 14px 14px;
@@ -4943,6 +4956,14 @@ body {
             });
         });
         shell.appendChild(btn);
+    });
+
+    article.querySelectorAll('table').forEach(function(table) {
+        if (table.parentNode && table.parentNode.classList && table.parentNode.classList.contains('table-wrap')) return;
+        var wrap = document.createElement('div');
+        wrap.className = 'table-wrap';
+        table.parentNode.insertBefore(wrap, table);
+        wrap.appendChild(table);
     });
 
     function updateScrollState() {
